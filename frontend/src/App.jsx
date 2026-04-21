@@ -556,7 +556,7 @@ function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
             </div>
             <div className="flex shrink-0 flex-col gap-2 text-right text-xs text-ink/50">
               <span>Crisis line (KZ): <strong className="text-ink">150</strong></span>
-              <span>WHO helpline: <strong className="text-ink">+7 727 272-22-77</strong></span>
+              <span>WHO helpline: <strong className="text-ink">+7 771 454 9216</strong></span>
             </div>
           </div>
         </div>
@@ -943,7 +943,7 @@ function RiskResultPage({ data }) {
         </p>
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-ink/55">
           <span>Crisis line (KZ): <strong className="text-ink">150</strong></span>
-          <span>WHO: <strong className="text-ink">+7 727 272-22-77</strong></span>
+          <span>WHO: <strong className="text-ink">+7 771 454 9216</strong></span>
           <span>Text a trusted person today.</span>
         </div>
       </div>
