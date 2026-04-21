@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BrowserRouter,
   Link,
@@ -36,6 +36,57 @@ const gadQuestions = [
   "Being so restless that it is hard to sit still",
   "Becoming easily annoyed or irritable",
   "Feeling afraid as if something awful might happen",
+];
+const screeningQuestions = [
+  ...phqQuestions.map((question, index) => ({
+    group: "Mood and emotional strain",
+    key: `phq-${index}`,
+    question,
+    source: "phq9_answers",
+    index,
+  })),
+  ...gadQuestions.map((question, index) => ({
+    group: "Stress and anxiety pattern",
+    key: `gad-${index}`,
+    question,
+    source: "gad7_answers",
+    index,
+  })),
+];
+const screeningScale = [
+  { value: 1, label: "Strongly Disagree", tone: "border-[#ff8c88] bg-[#fff0f0]" },
+  { value: 2, label: "Disagree", tone: "border-[#ffb47f] bg-[#fff5ec]" },
+  { value: 3, label: "Neutral", tone: "border-[#c7d0d5] bg-[#f7fafb]" },
+  { value: 4, label: "Agree", tone: "border-[#63c978] bg-[#edf9ef]" },
+  { value: 5, label: "Strongly Agree", tone: "border-[#00c799] bg-[#e9fbf6]" },
+];
+const focusOptions = ["Rest", "Focus", "Study", "Workload", "Social", "Movement"];
+const soundscapes = [
+  { id: "rain", title: "Rain Garden", subtitle: "Soft rain-inspired ambient chords", frequency: 174 },
+  { id: "stream", title: "Mountain Stream", subtitle: "Light flowing tones for decompression", frequency: 220 },
+  { id: "night", title: "Night Wind", subtitle: "Low-noise calm for evening recovery", frequency: 136 },
+  { id: "forest", title: "Forest Dawn", subtitle: "Warm morning texture for gentle focus", frequency: 196 },
+];
+const BREATHING_SESSION_SECONDS = 60;
+const breathingCycle = [
+  {
+    label: "Breathe In",
+    duration: 4,
+    instruction: "Slow inhale through the nose",
+    className: "breathing-orb--inhale",
+  },
+  {
+    label: "Hold",
+    duration: 2,
+    instruction: "Keep the breath soft",
+    className: "breathing-orb--hold",
+  },
+  {
+    label: "Breathe Out",
+    duration: 6,
+    instruction: "Long relaxed exhale",
+    className: "breathing-orb--exhale",
+  },
 ];
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
@@ -118,6 +169,26 @@ function normalizePercent(value) {
   return Math.max(0, Math.min(100, Math.round((value || 0) * 100)));
 }
 
+function getBreathingPhase(elapsedSeconds) {
+  const totalCycle = breathingCycle.reduce((sum, item) => sum + item.duration, 0);
+  let cursor = elapsedSeconds % totalCycle;
+
+  for (const phase of breathingCycle) {
+    if (cursor < phase.duration) {
+      return {
+        ...phase,
+        remainingInPhase: phase.duration - cursor,
+      };
+    }
+    cursor -= phase.duration;
+  }
+
+  return {
+    ...breathingCycle[0],
+    remainingInPhase: breathingCycle[0].duration,
+  };
+}
+
 function averageValue(items, accessor, digits = 1) {
   if (!items?.length) {
     return 0;
@@ -156,6 +227,42 @@ function buildAdminMiniStats(adminDetail) {
     latestJournalDistress: normalizePercent(adminDetail.user?.latest_journal?.distress_score),
     moodDelta: Number((lastMood - firstMood).toFixed(1)),
   };
+}
+
+function calcStreak(historyItems) {
+  if (!historyItems?.length) return 0;
+  const toDay = (d) => Math.floor(new Date(d).getTime() / 86400000);
+  const days = [...new Set(historyItems.map((item) => toDay(item.created_at)))].sort((a, b) => b - a);
+  if (days[0] < toDay(new Date()) - 1) return 0;
+  let streak = 1;
+  for (let i = 1; i < days.length; i++) {
+    if (days[i - 1] - days[i] === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function calcBaseline(historyItems) {
+  const recent = (historyItems || []).slice(0, 7);
+  if (recent.length < 2) return null;
+  return {
+    mood: averageValue(recent, (item) => item.mood, 1),
+    stress: averageValue(recent, (item) => item.stress, 1),
+    sleep: averageValue(recent, (item) => item.sleep, 1),
+    energy: averageValue(recent, (item) => item.energy, 1),
+  };
+}
+
+function calcConsistency(historyItems) {
+  if (!historyItems?.length) return 0;
+  const toDay = (d) => Math.floor(new Date(d).getTime() / 86400000);
+  const today = toDay(new Date());
+  const days = new Set(historyItems.map((item) => toDay(item.created_at)));
+  let count = 0;
+  for (let i = 0; i < 7; i++) {
+    if (days.has(today - i)) count++;
+  }
+  return Math.round((count / 7) * 100);
 }
 
 function scoreTone(level) {
@@ -204,7 +311,7 @@ function AppShell({ session, statusMessage, onLogout }) {
       <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="h-fit rounded-[2rem] bg-sidebar p-5 text-white shadow-panel xl:sticky xl:top-4">
           <div className="rounded-[1.6rem] bg-white/8 p-5">
-            <p className="text-xs uppercase tracking-[0.4em] text-white/60">MindTrack</p>
+            <MindTrackLogo tone="dark" />
             <h1 className="mt-4 font-display text-4xl leading-none">Your wellness space</h1>
             <p className="mt-3 text-sm text-white/72">
               Gentle daily check-ins and steady awareness for long-term wellbeing.
@@ -301,6 +408,9 @@ function WelcomePage() {
           <div className="absolute left-[-60px] top-[-60px] h-48 w-48 rounded-full bg-white/6" />
           <div className="absolute right-[-40px] bottom-[-40px] h-56 w-56 rounded-full bg-white/5 blur-2xl" />
           <div className="relative text-center">
+            <div className="mb-8 flex justify-center">
+              <MindTrackLogo tone="hero" />
+            </div>
             <h1 className="font-display text-5xl leading-[1.05] sm:text-6xl">
               Take care of your mind,<br />one day at a time.
             </h1>
@@ -338,8 +448,8 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, o
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-10 text-ink sm:px-6">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <p className="text-xs uppercase tracking-[0.4em] text-ink/40">MindTrack</p>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <MindTrackLogo />
           <h1 className="mt-3 font-display text-4xl">Welcome back</h1>
           <p className="mt-2 text-sm text-ink/55">Sign in or create an account to continue.</p>
         </div>
@@ -420,14 +530,67 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, o
   );
 }
 
-function DashboardPage({ data, pageLoading, onSeedDemo }) {
+function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
   const assessment = data?.latest_assessment;
   const score = normalizePercent(assessment?.risk_score);
   const questionnaireStatus = data?.questionnaire_status;
   const guidance = data?.guidance;
+  const historyItems = history?.items || [];
+  const streak = calcStreak(historyItems);
+  const consistency = calcConsistency(historyItems);
+  const baseline = calcBaseline(historyItems);
+  const latestMood = data?.latest_mood;
+  const isHighRisk = assessment?.risk_level === "HIGH";
 
   return (
     <div className="space-y-6">
+      {isHighRisk && (
+        <div className="rounded-2xl border border-[#f5c6c6] bg-[#fff5f5] p-5 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#b03030]">Safety Notice</p>
+              <p className="mt-2 text-sm leading-6 text-ink/75">
+                Your current screening shows elevated risk signals. You don&apos;t need to face this alone.
+                Reaching out to someone you trust — a friend, counselor, or helpline — can make a real difference.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 text-right text-xs text-ink/50">
+              <span>Crisis line (KZ): <strong className="text-ink">150</strong></span>
+              <span>WHO helpline: <strong className="text-ink">+7 727 272-22-77</strong></span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Check-In Streak</p>
+          <p className="mt-2 text-3xl font-semibold text-primary">{streak}</p>
+          <p className="mt-1 text-sm text-ink/55">{streak === 1 ? "day" : "days"} in a row</p>
+        </div>
+        <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Weekly Consistency</p>
+          <p className="mt-2 text-3xl font-semibold text-primary-soft">{consistency}%</p>
+          <p className="mt-1 text-sm text-ink/55">last 7 days</p>
+        </div>
+        {baseline && latestMood ? (
+          <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">vs Your Baseline</p>
+            <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+              <BaselineDelta label="Mood" current={latestMood.mood} base={baseline.mood} />
+              <BaselineDelta label="Stress" current={latestMood.stress} base={baseline.stress} invert />
+              <BaselineDelta label="Sleep" current={latestMood.sleep} base={baseline.sleep} />
+              <BaselineDelta label="Energy" current={latestMood.energy} base={baseline.energy} />
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Personal Baseline</p>
+            <p className="mt-3 text-sm text-ink/50">Available after 2+ check-ins.</p>
+          </div>
+        )}
+      </div>
+
       {questionnaireStatus && (
         <div className="rounded-[1.6rem] border border-line bg-white px-5 py-4 shadow-sm">
           <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Deeper screening</p>
@@ -503,7 +666,7 @@ function DashboardPage({ data, pageLoading, onSeedDemo }) {
             </div>
           </Card>
 
-          <Card title="Professional summary" eyebrow="AI Guidance">
+          <Card title="Support Plan" eyebrow="AI Guidance">
             <ProfessionalGuidance guidance={guidance} />
           </Card>
         </section>
@@ -529,7 +692,7 @@ function DashboardPage({ data, pageLoading, onSeedDemo }) {
             </div>
           </Card>
 
-          <Card title="Guidance breakdown" eyebrow="Support Plan">
+          <Card title="Recommendation queue" eyebrow="Support Plan">
             <div className="grid gap-3">
               {(data?.recommendations || []).length === 0 ? (
                 <EmptyState text="Recommendations appear after the first complete assessment." />
@@ -551,14 +714,19 @@ function DashboardPage({ data, pageLoading, onSeedDemo }) {
 }
 
 function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
-  const navigate = useNavigate();
   const [form, setForm] = useState({
     ...moodDefaults,
-    phq9_answers: Array(9).fill(3),
-    gad7_answers: Array(7).fill(3),
+    phq9_answers: Array(9).fill(null),
+    gad7_answers: Array(7).fill(null),
     includeQuestionnaire: Boolean(questionnaireStatus?.due_now),
+    focus: "Rest",
     text: "",
   });
+  const [screeningStep, setScreeningStep] = useState(0);
+  const [validationMessage, setValidationMessage] = useState("");
+  const activeQuestion = screeningQuestions[screeningStep];
+  const answeredCount = screeningQuestions.filter((item) => form[item.source][item.index] !== null).length;
+  const progressPercent = Math.round((answeredCount / screeningQuestions.length) * 100);
 
   useEffect(() => {
     setForm((current) => ({
@@ -569,8 +737,18 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setValidationMessage("");
+
+    if (form.includeQuestionnaire) {
+      const missingIndex = screeningQuestions.findIndex((item) => form[item.source][item.index] === null);
+      if (missingIndex >= 0) {
+        setScreeningStep(missingIndex);
+        setValidationMessage(`Please answer statement ${missingIndex + 1} before submitting the deeper screening.`);
+        return;
+      }
+    }
+
     await onSubmit(form);
-    navigate("/risk-result");
   }
 
   return (
@@ -578,42 +756,52 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
         <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Step 1</p>
         <h3 className="mt-3 font-display text-4xl">Daily mood check-in</h3>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <SliderCard
-            accent="bg-soft text-primary"
-            label="Mood"
-            value={form.mood}
-            onChange={(value) => setForm((current) => ({ ...current, mood: value }))}
-          />
-          <SliderCard
-            accent="bg-calm/55 text-primary"
-            label="Stress"
-            value={form.stress}
-            onChange={(value) => setForm((current) => ({ ...current, stress: value }))}
-          />
-          <SliderCard
-            accent="bg-soft text-primary-soft"
-            label="Energy"
-            value={form.energy}
-            onChange={(value) => setForm((current) => ({ ...current, energy: value }))}
-          />
-          <div className="rounded-[1.7rem] bg-canvas p-5">
-            <FormField
-              label="Sleep Hours"
-              onChange={(value) => setForm((current) => ({ ...current, sleep: Number(value) }))}
-              placeholder="7"
-              step="0.5"
-              type="number"
-              value={form.sleep}
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4">
+            <SliderCard
+              accent="bg-soft text-primary"
+              label="Mood"
+              value={form.mood}
+              onChange={(value) => setForm((current) => ({ ...current, mood: value }))}
             />
-            <div className="mt-4">
-              <label className="mb-3 block text-sm font-semibold">Quick note</label>
-              <textarea
-                className="min-h-[100px] w-full rounded-[1.1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
-                onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
-                placeholder="Describe what stood out today..."
-                value={form.note}
+            <SliderCard
+              accent="bg-soft text-primary-soft"
+              label="Energy"
+              value={form.energy}
+              onChange={(value) => setForm((current) => ({ ...current, energy: value }))}
+            />
+            <FocusSelector
+              options={focusOptions}
+              value={form.focus}
+              onChange={(value) => setForm((current) => ({ ...current, focus: value }))}
+            />
+          </div>
+
+          <div className="grid gap-4">
+            <SliderCard
+              accent="bg-calm/55 text-primary"
+              label="Stress"
+              value={form.stress}
+              onChange={(value) => setForm((current) => ({ ...current, stress: value }))}
+            />
+            <div className="rounded-[1.7rem] bg-canvas p-5">
+              <FormField
+                label="Sleep Hours"
+                onChange={(value) => setForm((current) => ({ ...current, sleep: Number(value) }))}
+                placeholder="7"
+                step="0.5"
+                type="number"
+                value={form.sleep}
               />
+              <div className="mt-4">
+                <label className="mb-3 block text-sm font-semibold">Quick note</label>
+                <textarea
+                  className="min-h-[124px] w-full rounded-[1.1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
+                  onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
+                  placeholder="Describe what stood out today..."
+                  value={form.note}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -652,38 +840,26 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
 
         {form.includeQuestionnaire ? (
           <div className="mt-6 space-y-6">
-            <p className="max-w-3xl text-sm leading-6 text-ink/64">
-              Completing this section is optional, but it helps the platform produce a more accurate risk profile,
-              sharper explanations, and stronger personalized guidance.
-            </p>
-            <div className="grid gap-6 xl:grid-cols-2">
-              <QuestionBlock
-                answers={form.phq9_answers}
-                onChange={(index, value) =>
-                  setForm((current) => ({
-                    ...current,
-                    phq9_answers: current.phq9_answers.map((item, currentIndex) =>
-                      currentIndex === index ? value : item,
-                    ),
-                  }))
-                }
-                title="Mood and emotional strain"
-                questions={phqQuestions}
-              />
-              <QuestionBlock
-                answers={form.gad7_answers}
-                onChange={(index, value) =>
-                  setForm((current) => ({
-                    ...current,
-                    gad7_answers: current.gad7_answers.map((item, currentIndex) =>
-                      currentIndex === index ? value : item,
-                    ),
-                  }))
-                }
-                title="Stress and anxiety pattern"
-                questions={gadQuestions}
-              />
-            </div>
+            <QuestionnaireFlow
+              activeQuestion={activeQuestion}
+              answeredCount={answeredCount}
+              onAnswer={(value) => {
+                setValidationMessage("");
+                setForm((current) => ({
+                  ...current,
+                  [activeQuestion.source]: current[activeQuestion.source].map((item, currentIndex) =>
+                    currentIndex === activeQuestion.index ? (item === value ? null : value) : item,
+                  ),
+                }));
+              }}
+              onNext={() => setScreeningStep((current) => Math.min(current + 1, screeningQuestions.length - 1))}
+              onPrevious={() => setScreeningStep((current) => Math.max(current - 1, 0))}
+              progressPercent={progressPercent}
+              selectedValue={form[activeQuestion.source][activeQuestion.index]}
+              step={screeningStep}
+              total={screeningQuestions.length}
+              validationMessage={validationMessage}
+            />
           </div>
         ) : (
           <div className="mt-6 rounded-[1.5rem] border border-line bg-white px-5 py-5">
@@ -735,10 +911,46 @@ function RiskResultPage({ data }) {
   const journal = data?.latest_journal;
   const guidance = data?.guidance;
 
+  if (!assessment) {
+    return (
+      <div className="rounded-[2rem] bg-white p-8 text-center shadow-panel">
+        <div className="mx-auto flex max-w-2xl flex-col items-center">
+          <MindTrackLogo />
+          <p className="mt-8 text-xs uppercase tracking-[0.35em] text-ink/45">Risk Result</p>
+          <h3 className="mt-3 font-display text-4xl">No assessment yet</h3>
+          <p className="mt-4 max-w-lg text-sm leading-6 text-ink/62">
+            Complete a check-in first so MindTrack can calculate a fresh risk result and build a support plan.
+          </p>
+          <Link
+            className="mt-7 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:brightness-95"
+            to="/check-in"
+          >
+            Start Check-In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
+    <div className="space-y-6">
+    {assessment?.risk_level === "HIGH" && (
+      <div className="rounded-2xl border border-[#f5c6c6] bg-[#fff5f5] p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#b03030]">Reach out — you don&apos;t have to manage this alone</p>
+        <p className="mt-2 text-sm leading-6 text-ink/70">
+          These results suggest elevated distress. Speaking with someone you trust — a counselor, doctor,
+          or crisis line — is a meaningful next step.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3 text-xs text-ink/55">
+          <span>Crisis line (KZ): <strong className="text-ink">150</strong></span>
+          <span>WHO: <strong className="text-ink">+7 727 272-22-77</strong></span>
+          <span>Text a trusted person today.</span>
+        </div>
+      </div>
+    )}
     <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
       <section className="space-y-6">
-        <div className="rounded-[2rem] bg-white p-6 shadow-panel">
+        <div className="rounded-2xl bg-white p-6 shadow-panel">
           <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Risk Result</p>
           <div className="mt-6 flex flex-col items-center gap-4 rounded-[1.8rem] bg-canvas p-6 text-center">
             <MetricRing percent={normalizePercent(assessment?.risk_score)} level={assessment?.risk_level || "LOW"} />
@@ -764,7 +976,7 @@ function RiskResultPage({ data }) {
       </section>
 
       <section className="space-y-6">
-        <Card title="Professional guidance" eyebrow="Interpretation">
+        <Card title="Support Plan" eyebrow="AI Guidance">
           <ProfessionalGuidance guidance={guidance} />
         </Card>
 
@@ -802,18 +1014,66 @@ function RiskResultPage({ data }) {
         </Card>
       </section>
     </div>
+    </div>
   );
 }
 
 function InsightsPage({ insights, history }) {
+  const historyItems = history?.items || [];
+  const weekItems = historyItems.slice(0, 7);
+  const streak = calcStreak(historyItems);
+  const baseline = calcBaseline(historyItems);
+  const consistency = calcConsistency(historyItems);
+  const avgMood = averageValue(weekItems, (item) => item.mood, 1);
+  const avgStress = averageValue(weekItems, (item) => item.stress, 1);
+  const avgSleep = averageValue(weekItems, (item) => item.sleep, 1);
+  const bestDay = weekItems.reduce((best, item) => (!best || item.mood > best.mood ? item : best), null);
+  const worstDay = weekItems.reduce((worst, item) => (!worst || item.mood < worst.mood ? item : worst), null);
+
   return (
     <div className="space-y-6">
+      {weekItems.length >= 2 && (
+        <div className="rounded-2xl bg-gradient-to-br from-sidebar to-primary p-6 text-white shadow-panel">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/65">Weekly Report</p>
+          <h3 className="mt-2 font-display text-3xl">7-Day Summary</h3>
+          <div className="mt-5 grid gap-4 sm:grid-cols-4">
+            <StatBlock label="Avg Mood" value={`${avgMood}/10`} />
+            <StatBlock label="Avg Stress" value={`${avgStress}/10`} />
+            <StatBlock label="Avg Sleep" value={`${avgSleep}h`} />
+            <StatBlock label="Consistency" value={`${consistency}%`} />
+          </div>
+          {(bestDay || worstDay) && (
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {bestDay && (
+                <div className="rounded-xl bg-white/10 px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.25em] text-white/62">Best day</p>
+                  <p className="mt-1 text-sm font-semibold">Mood {bestDay.mood}/10</p>
+                  <p className="text-xs text-white/55">{formatDate(bestDay.created_at)}</p>
+                </div>
+              )}
+              {worstDay && worstDay !== bestDay && (
+                <div className="rounded-xl bg-white/10 px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.25em] text-white/62">Hardest day</p>
+                  <p className="mt-1 text-sm font-semibold">Mood {worstDay.mood}/10</p>
+                  <p className="text-xs text-white/55">{formatDate(worstDay.created_at)}</p>
+                </div>
+              )}
+            </div>
+          )}
+          {streak > 0 && (
+            <p className="mt-4 text-sm text-white/72">
+              {streak}-day check-in streak — keep the habit going.
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card title="Weekly trend dashboard" eyebrow="Insights">
+        <Card title="Weekly trend" eyebrow="Insights">
           <TrendChart points={insights?.trend_points || []} />
         </Card>
 
-        <Card title="Behavior pattern scan" eyebrow="Deviation Detection">
+        <Card title="Pattern scan" eyebrow="Deviation Detection">
           <div className="space-y-4">
             <MiniMetric label="Trend Delta" value={insights?.summary?.trend_delta || 0} suffix="" />
             <MiniMetric label="Decline Streak" value={insights?.summary?.decline_streak || 0} suffix=" days" />
@@ -822,10 +1082,18 @@ function InsightsPage({ insights, history }) {
               value={insights?.deviation_detected ? "Detected" : "Stable"}
               suffix=""
             />
-            <div className="rounded-[1.4rem] bg-canvas px-4 py-4 text-sm leading-6 text-ink/65">
+            {baseline && (
+              <div className="grid grid-cols-2 gap-3">
+                <MiniMetric label="Baseline Mood" value={baseline.mood} suffix="/10" />
+                <MiniMetric label="Baseline Stress" value={baseline.stress} suffix="/10" />
+                <MiniMetric label="Baseline Sleep" value={baseline.sleep} suffix="h" />
+                <MiniMetric label="Baseline Energy" value={baseline.energy} suffix="/10" />
+              </div>
+            )}
+            <div className="rounded-xl bg-canvas px-4 py-4 text-sm leading-6 text-ink/65">
               {insights?.deviation_detected
-                ? "The short-term pattern deviates from the user's recent baseline and may need closer monitoring."
-                : "No significant downward deviation is visible in the recent pattern."}
+                ? "The short-term pattern deviates from your recent baseline and may need closer attention."
+                : "No significant downward deviation in the recent pattern."}
             </div>
           </div>
         </Card>
@@ -839,7 +1107,7 @@ function InsightsPage({ insights, history }) {
                 <MiniMetric label="Sentiment" value={insights.journal.sentiment_label} suffix="" />
                 <MiniMetric label="Distress" value={normalizePercent(insights.journal.distress_score)} suffix="%" />
               </div>
-              <div className="rounded-[1.4rem] bg-canvas px-4 py-4 text-sm leading-6 text-ink/65">
+              <div className="rounded-xl bg-canvas px-4 py-4 text-sm leading-6 text-ink/65">
                 {insights.journal.text}
               </div>
             </div>
@@ -848,10 +1116,10 @@ function InsightsPage({ insights, history }) {
           )}
         </Card>
 
-        <Card title="Recent assessment timeline" eyebrow="History Preview">
+        <Card title="Recent timeline" eyebrow="History Preview">
           <div className="space-y-3">
-            {(history?.items || []).slice(0, 6).map((item) => (
-              <div className="rounded-[1.4rem] bg-canvas px-4 py-4" key={item.id}>
+            {historyItems.slice(0, 6).map((item) => (
+              <div className="rounded-xl bg-canvas px-4 py-4" key={item.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold">{formatDate(item.created_at)}</p>
                   <p className={`text-xs font-bold uppercase tracking-[0.25em] ${riskToneText(item.risk_level)}`}>
@@ -901,9 +1169,11 @@ function HistoryPage({ history }) {
 }
 
 function WellnessPage() {
-  const [seconds, setSeconds] = useState(60);
+  const [remaining, setRemaining] = useState(BREATHING_SESSION_SECONDS);
+  const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
-  const [phase, setPhase] = useState("Breathe In");
+  const phase = getBreathingPhase(elapsed);
+  const completedPercent = Math.round(((BREATHING_SESSION_SECONDS - remaining) / BREATHING_SESSION_SECONDS) * 100);
 
   useEffect(() => {
     if (!running) {
@@ -911,39 +1181,71 @@ function WellnessPage() {
     }
 
     const timer = window.setInterval(() => {
-      setSeconds((current) => {
+      setRemaining((current) => {
         if (current <= 1) {
           window.clearInterval(timer);
           setRunning(false);
-          return 60;
+          return 0;
         }
         return current - 1;
       });
-      setPhase((current) => (current === "Breathe In" ? "Breathe Out" : "Breathe In"));
-    }, 4000);
+      setElapsed((current) => current + 1);
+    }, 1000);
 
     return () => window.clearInterval(timer);
   }, [running]);
 
+  function toggleBreathing() {
+    if (remaining === 0) {
+      setRemaining(BREATHING_SESSION_SECONDS);
+      setElapsed(0);
+      setRunning(true);
+      return;
+    }
+
+    setRunning((current) => !current);
+  }
+
+  function resetBreathing() {
+    setRunning(false);
+    setRemaining(BREATHING_SESSION_SECONDS);
+    setElapsed(0);
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="space-y-6">
-        <div className="rounded-[2rem] bg-[#abc36a] p-6 text-white shadow-panel">
+        <div className="rounded-[2rem] bg-gradient-to-br from-[#6fae8d] to-[#4E7FA8] p-6 text-white shadow-panel">
           <p className="text-xs uppercase tracking-[0.35em] text-white/65">Breathing Exercise</p>
           <div className="mt-6 flex flex-col items-center gap-5">
-            <div className={`breathing-orb ${running ? "breathing-orb--active" : ""}`}>
+            <div className={`breathing-orb ${running ? phase.className : ""}`}>
               <div className="breathing-orb__inner">
-                <p className="text-sm uppercase tracking-[0.25em] text-white/65">{seconds}s</p>
-                <p className="mt-1 text-2xl font-semibold">{phase}</p>
+                <p className="text-sm uppercase tracking-[0.25em] text-white/65">{remaining}s</p>
+                <p className="mt-1 text-2xl font-semibold">{remaining === 0 ? "Complete" : phase.label}</p>
+                <p className="mt-2 text-center text-xs text-white/62">{remaining === 0 ? "Nice work" : phase.instruction}</p>
               </div>
             </div>
-            <button
-              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:brightness-95"
-              onClick={() => setRunning((current) => !current)}
-              type="button"
-            >
-              {running ? "Pause Exercise" : "Start Exercise"}
-            </button>
+            <div className="w-full max-w-sm">
+              <div className="h-2 overflow-hidden rounded-full bg-white/20">
+                <div className="h-full rounded-full bg-white transition-all" style={{ width: `${completedPercent}%` }} />
+              </div>
+              <div className="mt-4 flex justify-center gap-3">
+                <button
+                  className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:brightness-95"
+                  onClick={toggleBreathing}
+                  type="button"
+                >
+                  {running ? "Pause" : remaining === 0 ? "Restart" : "Start"}
+                </button>
+                <button
+                  className="rounded-full border border-white/25 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                  onClick={resetBreathing}
+                  type="button"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -958,18 +1260,14 @@ function WellnessPage() {
 
       <section className="space-y-6">
         <Card title="Soundscapes" eyebrow="Recovery Audio">
-          <div className="grid gap-4 md:grid-cols-2">
-            <SoundCard title="Rain Garden" subtitle="Soft rain and leaves" />
-            <SoundCard title="Mountain Stream" subtitle="Flowing water and calm air" />
-            <SoundCard title="Night Wind" subtitle="Low-noise focus ambience" />
-            <SoundCard title="Forest Birds" subtitle="Gentle nature stimulation" />
-          </div>
+          <SoundscapePlayer />
         </Card>
 
-        <Card title="Why this page exists" eyebrow="Product Story">
-          <div className="rounded-[1.4rem] bg-canvas px-4 py-4 text-sm leading-7 text-ink/65">
-            The project should not only predict risk. It should also help the user respond in calmer, low-friction
-            ways that fit a daily routine.
+        <Card title="Reset routine" eyebrow="Aftercare">
+          <div className="grid gap-3">
+            <FeatureCard title="One minute" text="Use the breathing timer before submitting a stressful check-in." />
+            <FeatureCard title="Three minutes" text="Add a soundscape and write one sentence about the strongest trigger." />
+            <FeatureCard title="Tonight" text="Choose one small recovery action that protects sleep and energy." />
           </div>
         </Card>
       </section>
@@ -980,6 +1278,10 @@ function WellnessPage() {
 function SettingsPage({ session, onFeedback }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [privacyMode, setPrivacyMode] = useState(true);
+  const [reminderTime, setReminderTime] = useState("20:30");
+  const [checkInGoal, setCheckInGoal] = useState("5");
+  const [language, setLanguage] = useState("English");
   const [feedback, setFeedback] = useState({ category: "Performance", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -989,9 +1291,12 @@ function SettingsPage({ session, onFeedback }) {
       return;
     }
     setSubmitting(true);
-    await onFeedback(feedback);
-    setFeedback((current) => ({ ...current, message: "" }));
-    setSubmitting(false);
+    try {
+      await onFeedback(feedback);
+      setFeedback((current) => ({ ...current, message: "" }));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -999,15 +1304,48 @@ function SettingsPage({ session, onFeedback }) {
       <section className="space-y-6">
         <Card title="Profile summary" eyebrow="Account">
           <div className="rounded-[1.5rem] bg-canvas p-5">
-            <p className="text-sm font-semibold">{session.is_anonymous ? "Anonymous Session" : session.email}</p>
-            <p className="mt-1 text-sm text-ink/55">
-              Use the quick daily check-in when you want speed, or open the deeper screening any time you want more detailed insight.
-            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold">{session.is_anonymous ? "Anonymous Session" : session.email}</p>
+                <p className="mt-1 text-sm text-ink/55">User #{session.user_id}</p>
+              </div>
+              <span className="w-fit rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+                {session.is_anonymous ? "Private mode" : "Signed in"}
+              </span>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <MiniMetric label="Goal" value={checkInGoal} suffix="/week" />
+              <MiniMetric label="Reminder" value={reminderTime} suffix="" />
+              <MiniMetric label="Language" value={language} suffix="" />
+            </div>
           </div>
         </Card>
 
         <Card title="Notification settings" eyebrow="Preferences">
           <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="rounded-[1.4rem] bg-canvas px-4 py-4">
+                <span className="block text-sm font-semibold">Reminder time</span>
+                <input
+                  className="mt-3 w-full rounded-[1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
+                  onChange={(event) => setReminderTime(event.target.value)}
+                  type="time"
+                  value={reminderTime}
+                />
+              </label>
+              <label className="rounded-[1.4rem] bg-canvas px-4 py-4">
+                <span className="block text-sm font-semibold">Weekly check-in goal</span>
+                <select
+                  className="mt-3 w-full rounded-[1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
+                  onChange={(event) => setCheckInGoal(event.target.value)}
+                  value={checkInGoal}
+                >
+                  <option value="3">3 days</option>
+                  <option value="5">5 days</option>
+                  <option value="7">Every day</option>
+                </select>
+              </label>
+            </div>
             <ToggleRow
               description="Show reminders for the daily check-in."
               enabled={notificationsEnabled}
@@ -1023,12 +1361,26 @@ function SettingsPage({ session, onFeedback }) {
           </div>
         </Card>
 
-        <Card title="Linked devices" eyebrow="Ecosystem">
-          <div className="grid gap-4 md:grid-cols-2">
-            <DeviceCard device="Smart Watch" status="Connect" />
-            <DeviceCard device="Sleep Patch" status="Connect" />
-            <DeviceCard device="Mini ECG" status="Preview" />
-            <DeviceCard device="BP Monitor" status="Preview" />
+        <Card title="Privacy and localization" eyebrow="Personalization">
+          <div className="space-y-4">
+            <ToggleRow
+              description="Hide sensitive notes in shared presentation moments."
+              enabled={privacyMode}
+              label="Privacy screen"
+              onToggle={() => setPrivacyMode((current) => !current)}
+            />
+            <label className="block rounded-[1.4rem] bg-canvas px-4 py-4">
+              <span className="block text-sm font-semibold">Interface language</span>
+              <select
+                className="mt-3 w-full rounded-[1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
+                onChange={(event) => setLanguage(event.target.value)}
+                value={language}
+              >
+                <option>English</option>
+                <option>Russian</option>
+                <option>Kazakh</option>
+              </select>
+            </label>
           </div>
         </Card>
       </section>
@@ -1060,6 +1412,15 @@ function SettingsPage({ session, onFeedback }) {
               {submitting ? "Sending..." : "Submit Feedback"}
             </button>
           </form>
+        </Card>
+
+        <Card title="Connected signals" eyebrow="Ecosystem">
+          <div className="grid gap-4 md:grid-cols-2">
+            <DeviceCard device="Smart Watch" status="Connect" />
+            <DeviceCard device="Sleep Patch" status="Preview" />
+            <DeviceCard device="Mini ECG" status="Preview" />
+            <DeviceCard device="BP Monitor" status="Preview" />
+          </div>
         </Card>
 
         <Card title="Safety note" eyebrow="Clinical Boundary">
@@ -1140,12 +1501,20 @@ function AdminPage({ adminOverview, adminDetail, onSelectUser, adminLoading, isA
       </Card>
 
       <div className={`grid gap-6 ${adminDetail ? "xl:grid-cols-[0.84fr_1.16fr]" : "xl:grid-cols-[1.04fr_0.96fr]"}`}>
-        <Card title="Users under observation" eyebrow="Admin Table">
+        <Card title="Users under observation" eyebrow="Admin Triage">
           <div className="space-y-3">
             {(adminOverview?.users || []).length === 0 ? (
               <EmptyState text="No user data is available yet." />
             ) : (
-              adminOverview.users.map((user) => (
+              [...adminOverview.users]
+                .sort((a, b) => {
+                  const score = (u) =>
+                    (u.latest_assessment?.risk_level === "HIGH" ? 4 : u.latest_assessment?.risk_level === "MEDIUM" ? 2 : 0) +
+                    (u.questionnaire_status?.due_now ? 2 : 0) +
+                    (u.unread_alerts || 0);
+                  return score(b) - score(a);
+                })
+                .map((user) => (
                 <button
                   className="w-full rounded-[1.5rem] bg-canvas px-4 py-4 text-left transition hover:bg-[#f2e7d9]"
                   key={user.user_id}
@@ -1346,6 +1715,45 @@ function AdminStandalonePage(props) {
   );
 }
 
+function MindTrackLogo({ tone = "light" }) {
+  const textClass = tone === "dark" || tone === "hero" ? "text-white" : "text-ink";
+  const subTextClass = tone === "dark" || tone === "hero" ? "text-white/58" : "text-ink/45";
+  const markClass = tone === "hero" ? "bg-white/12 ring-white/18" : tone === "dark" ? "bg-white/10 ring-white/15" : "bg-white ring-line";
+
+  return (
+    <div className="inline-flex items-center gap-3">
+      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ring-1 ${markClass}`}>
+        <svg aria-hidden="true" className="h-8 w-8" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" fill={tone === "light" ? "#E8F2EF" : "rgba(255,255,255,0.18)"} r="21" />
+          <path
+            d="M12 27 C17 18, 25 18, 30 27 C33 32, 39 30, 41 23"
+            fill="none"
+            stroke={tone === "light" ? "#4E7FA8" : "#FFFFFF"}
+            strokeLinecap="round"
+            strokeWidth="3.4"
+          />
+          <path
+            d="M22 29 C21 20, 27 14, 35 14 C35 22, 30 29, 22 29Z"
+            fill={tone === "light" ? "#68A898" : "rgba(255,255,255,0.72)"}
+          />
+          <path
+            d="M18 29 L22 29 L25 22 L29 34 L33 26 L37 26"
+            fill="none"
+            stroke={tone === "light" ? "#1B2A3B" : "#FFFFFF"}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+        </svg>
+      </div>
+      <div className="text-left">
+        <p className={`font-display text-xl font-semibold leading-none ${textClass}`}>MindTrack</p>
+        <p className={`mt-1 text-xs uppercase tracking-[0.28em] ${subTextClass}`}>AI Wellness</p>
+      </div>
+    </div>
+  );
+}
+
 function FormField({ label, type, value, onChange, placeholder, step }) {
   return (
     <div>
@@ -1374,7 +1782,7 @@ function InfoPill({ title, value, tone }) {
 
 function WelcomeStep({ number, title, text, color }) {
   return (
-    <div className={`rounded-[1.9rem] ${color} p-5 shadow-sm`}>
+    <div className={`rounded-2xl ${color} p-5 shadow-sm`}>
       <p className="text-xs uppercase tracking-[0.35em] text-ink/42">{number}</p>
       <h3 className="mt-4 text-xl font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-ink/65">{text}</p>
@@ -1384,7 +1792,7 @@ function WelcomeStep({ number, title, text, color }) {
 
 function FeatureCard({ title, text }) {
   return (
-    <div className="rounded-[1.6rem] bg-canvas p-5">
+    <div className="rounded-xl bg-canvas p-5">
       <h3 className="text-base font-semibold">{title}</h3>
       <p className="mt-3 text-sm leading-6 text-ink/64">{text}</p>
     </div>
@@ -1393,7 +1801,7 @@ function FeatureCard({ title, text }) {
 
 function Card({ eyebrow, title, children }) {
   return (
-    <section className="rounded-[2rem] bg-white p-6 shadow-panel">
+    <section className="rounded-2xl bg-white p-6 shadow-panel">
       <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{eyebrow}</p>
       <h3 className="mt-3 font-display text-3xl">{title}</h3>
       <div className="mt-6">{children}</div>
@@ -1412,7 +1820,7 @@ function StatBlock({ label, value }) {
 
 function MiniMetric({ label, value, suffix }) {
   return (
-    <div className="rounded-[1.4rem] bg-canvas px-4 py-4">
+    <div className="rounded-xl bg-canvas px-4 py-4">
       <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{label}</p>
       <p className="mt-2 text-xl font-semibold">
         {value}
@@ -1532,7 +1940,7 @@ function BreakdownBar({ label, value }) {
 
 function SliderCard({ label, value, accent, onChange }) {
   return (
-    <div className="rounded-[1.7rem] bg-canvas p-5">
+    <div className="rounded-xl bg-canvas p-5">
       <div className="mb-4 flex items-center justify-between">
         <label className="text-sm font-semibold">{label}</label>
         <span className={`rounded-full px-3 py-1 text-sm font-semibold ${accent}`}>{value}/10</span>
@@ -1549,35 +1957,136 @@ function SliderCard({ label, value, accent, onChange }) {
   );
 }
 
-function QuestionBlock({ title, questions, answers, onChange }) {
+function FocusSelector({ options, value, onChange }) {
   return (
-    <div className="rounded-[1.7rem] bg-canvas p-5">
-      <p className="text-sm font-semibold">{title}</p>
-      <div className="mt-4 space-y-3">
-        {questions.map((question, index) => (
-          <div className="rounded-[1.2rem] bg-white p-4" key={question}>
-            <p className="text-sm leading-6 text-ink/68">{question}</p>
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
-                    answers[index] === value ? "bg-primary text-white" : "bg-canvas text-ink/65 hover:bg-primary/10"
-                  }`}
-                  key={value}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    onChange(index, value);
-                  }}
-                  type="button"
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
+    <div className="rounded-xl bg-canvas p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold">Today's focus</p>
+          <p className="mt-1 text-sm text-ink/58">Pick the main context for this check-in.</p>
+        </div>
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary">{value}</span>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {options.map((option) => (
+          <button
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              value === option
+                ? "border-primary bg-primary text-white"
+                : "border-line bg-white text-ink/66 hover:border-primary/35"
+            }`}
+            key={option}
+            onClick={() => onChange(option)}
+            type="button"
+          >
+            {option}
+          </button>
         ))}
       </div>
     </div>
+  );
+}
+
+function QuestionnaireFlow({
+  activeQuestion,
+  answeredCount,
+  onAnswer,
+  onNext,
+  onPrevious,
+  progressPercent,
+  selectedValue,
+  step,
+  total,
+  validationMessage,
+}) {
+  return (
+    <div className="overflow-hidden rounded-[1.7rem] border border-line bg-[#f8fbfd]">
+      <div className="flex items-center justify-between gap-4 border-b border-line bg-white px-5 py-4">
+        <button
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-line text-2xl leading-none text-ink/58 transition hover:border-primary/40 hover:text-primary disabled:opacity-30"
+          disabled={step === 0}
+          onClick={onPrevious}
+          type="button"
+        >
+          {"<"}
+        </button>
+        <div className="flex-1">
+          <div className="flex items-center justify-between gap-3 text-sm font-semibold text-ink/58">
+            <span>{progressPercent}%</span>
+            <span>
+              Step {step + 1} of {total}
+            </span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
+            <div className="h-full rounded-full bg-[#007d47] transition-all" style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 py-8 sm:px-8">
+        <p className="text-center text-xs uppercase tracking-[0.35em] text-ink/42">{activeQuestion.group}</p>
+        <h4 className="mx-auto mt-4 max-w-3xl text-center font-display text-3xl leading-tight text-ink sm:text-4xl">
+          Choose how accurately each statement reflects you.
+        </h4>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-7 text-ink/62">
+          {activeQuestion.question}
+        </p>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-5">
+          {screeningScale.map((item) => {
+            const selected = selectedValue === item.value;
+            return (
+              <button
+                className="group flex min-h-[132px] flex-col items-center justify-start gap-3 rounded-[1.3rem] px-2 py-4 text-center transition hover:bg-white"
+                key={item.value}
+                onClick={() => onAnswer(item.value)}
+                type="button"
+              >
+                <span
+                  className={`h-20 w-20 rounded-full border-[3px] transition ${item.tone} ${
+                    selected ? "scale-105 shadow-[0_12px_28px_rgba(27,42,59,0.16)] ring-4 ring-primary/12" : "group-hover:scale-105"
+                  }`}
+                />
+                <span className="max-w-[112px] text-sm font-semibold leading-5 text-ink">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {validationMessage && (
+          <div className="mx-auto mt-6 max-w-2xl rounded-[1.2rem] border border-[#efb0a8] bg-[#fff2f0] px-4 py-3 text-center text-sm font-semibold text-[#a84236]">
+            {validationMessage}
+          </div>
+        )}
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink/55">
+            Answered {answeredCount} of {total}. Tap the same circle again to clear it.
+          </p>
+          <button
+            className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={step === total - 1}
+            onClick={onNext}
+            type="button"
+          >
+            Next Statement
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BaselineDelta({ label, current, base, invert = false }) {
+  const diff = Number((current - base).toFixed(1));
+  const positive = invert ? diff < 0 : diff > 0;
+  const neutral = diff === 0;
+  const color = neutral ? "text-ink/45" : positive ? "text-[#2e7065]" : "text-[#b03030]";
+  const arrow = neutral ? "" : diff > 0 ? " ↑" : " ↓";
+  return (
+    <span className={`text-xs font-medium ${color}`}>
+      {label}: {diff > 0 ? "+" : ""}{diff}{arrow}
+    </span>
   );
 }
 
@@ -1585,47 +2094,100 @@ function EmptyState({ text }) {
   return <div className="rounded-[1.4rem] bg-canvas px-4 py-6 text-sm leading-6 text-ink/58">{text}</div>;
 }
 
-function GuidanceSection({ title, items, tone = "bg-canvas" }) {
-  if (!items?.length) {
-    return null;
-  }
-
-  return (
-    <div className={`rounded-[1.4rem] ${tone} px-4 py-4`}>
-      <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{title}</p>
-      <div className="mt-3 space-y-2">
-        {items.map((item) => (
-          <p className="text-sm leading-6 text-ink/68" key={item}>
-            {item}
-          </p>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function ProfessionalGuidance({ guidance }) {
+  const [openSections, setOpenSections] = useState({
+    summary: true,
+    drivers: false,
+    today: true,
+    monitor: false,
+    safety: false,
+  });
+
   if (!guidance) {
     return <EmptyState text="Complete a full assessment to generate a structured professional guidance report." />;
   }
 
+  function toggleSection(section) {
+    setOpenSections((current) => ({ ...current, [section]: !current[section] }));
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-[1.5rem] bg-[#fff8f0] px-5 py-5">
-        <p className="text-xs uppercase tracking-[0.35em] text-ink/42">{guidance.report_label || "AI Guidance"}</p>
-        <p className="mt-3 text-base leading-7 text-ink/72">{guidance.summary}</p>
-      </div>
-
-      <GuidanceSection items={guidance.risk_drivers} title="Key Risk Drivers" />
-      <GuidanceSection items={guidance.today_actions} title="What To Do Today" tone="bg-soft/60" />
-      <GuidanceSection items={guidance.follow_up_actions} title="What To Monitor Next" tone="bg-[#f4eee6]" />
-
+    <div className="space-y-3">
+      <AccordionSection
+        accent="bg-[#fff8f0]"
+        isOpen={openSections.summary}
+        onToggle={() => toggleSection("summary")}
+        title={guidance.report_label || "AI Guidance"}
+      >
+        <p className="text-base leading-7 text-ink/72">{guidance.summary}</p>
+      </AccordionSection>
+      <AccordionSection
+        isOpen={openSections.drivers}
+        onToggle={() => toggleSection("drivers")}
+        title="Key Risk Drivers"
+      >
+        <GuidanceList items={guidance.risk_drivers} />
+      </AccordionSection>
+      <AccordionSection
+        accent="bg-soft/60"
+        isOpen={openSections.today}
+        onToggle={() => toggleSection("today")}
+        title="What To Do Today"
+      >
+        <GuidanceList items={guidance.today_actions} />
+      </AccordionSection>
+      <AccordionSection
+        accent="bg-[#f4eee6]"
+        isOpen={openSections.monitor}
+        onToggle={() => toggleSection("monitor")}
+        title="What To Monitor Next"
+      >
+        <GuidanceList items={guidance.follow_up_actions} />
+      </AccordionSection>
       {guidance.escalation_note && (
-        <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">When To Seek Help</p>
-          <p className="mt-3 text-sm leading-6 text-ink/68">{guidance.escalation_note}</p>
-        </div>
+        <AccordionSection
+          accent="bg-[#EAF2FF]"
+          isOpen={openSections.safety}
+          onToggle={() => toggleSection("safety")}
+          title="When To Seek Help"
+        >
+          <p className="text-sm leading-6 text-ink/68">{guidance.escalation_note}</p>
+        </AccordionSection>
       )}
+    </div>
+  );
+}
+
+function AccordionSection({ accent = "bg-canvas", children, isOpen, onToggle, title }) {
+  return (
+    <div className={`rounded-xl ${accent} px-4 py-4`}>
+      <button
+        className="flex w-full items-center justify-between gap-4 text-left"
+        onClick={onToggle}
+        type="button"
+      >
+        <span className="text-sm font-semibold text-ink/72">{title}</span>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-base font-semibold text-primary shadow-sm">
+          {isOpen ? "−" : "+"}
+        </span>
+      </button>
+      {isOpen && <div className="mt-4">{children}</div>}
+    </div>
+  );
+}
+
+function GuidanceList({ items }) {
+  if (!items?.length) {
+    return <p className="text-sm leading-6 text-ink/58">No specific signal is available yet.</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <p className="text-sm leading-6 text-ink/68" key={item}>
+          {item}
+        </p>
+      ))}
     </div>
   );
 }
@@ -1652,7 +2214,7 @@ function TrendChart({ points }) {
   return (
     <div>
       <svg className="w-full" viewBox={`0 0 ${width} ${height}`}>
-        <rect fill="#f7f1e8" height={height} rx="28" width={width} />
+        <rect fill="#EEF3F9" height={height} rx="20" width={width} />
         {[0.25, 0.5, 0.75].map((level) => (
           <line
             key={level}
@@ -1693,22 +2255,181 @@ function TrendChart({ points }) {
   );
 }
 
-function SoundCard({ title, subtitle }) {
+function SoundscapePlayer() {
+  const [activeTrack, setActiveTrack] = useState(soundscapes[0].id);
+  const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.45);
+  const [audioMessage, setAudioMessage] = useState("");
+  const audioRef = useRef(null);
+  const active = soundscapes.find((track) => track.id === activeTrack) || soundscapes[0];
+
+  function stopAudio() {
+    const current = audioRef.current;
+    if (!current) {
+      return;
+    }
+
+    current.nodes.forEach((node) => {
+      try {
+        node.stop();
+      } catch {
+        // Some audio nodes may already be stopped.
+      }
+    });
+    current.context.close().catch(() => {});
+    audioRef.current = null;
+  }
+
+  function startAudio(track = active) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      setAudioMessage("Audio is not supported in this browser.");
+      return;
+    }
+
+    stopAudio();
+    const context = new AudioContext();
+    const master = context.createGain();
+    master.gain.value = volume * 0.16;
+    master.connect(context.destination);
+
+    const filter = context.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 900;
+    filter.Q.value = 0.6;
+    filter.connect(master);
+
+    const frequencies = [track.frequency, track.frequency * 1.5, track.frequency * 2.01];
+    const oscillators = frequencies.map((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = index === 1 ? "triangle" : "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.value = index === 0 ? 0.6 : 0.24;
+      oscillator.connect(gain);
+      gain.connect(filter);
+      oscillator.start();
+      return oscillator;
+    });
+
+    const lfo = context.createOscillator();
+    const lfoGain = context.createGain();
+    lfo.frequency.value = 0.07;
+    lfoGain.gain.value = volume * 0.035;
+    lfo.connect(lfoGain);
+    lfoGain.connect(master.gain);
+    lfo.start();
+
+    audioRef.current = { context, master, nodes: [...oscillators, lfo] };
+    setAudioMessage("");
+  }
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.master.gain.setTargetAtTime(
+        volume * 0.16,
+        audioRef.current.context.currentTime,
+        0.05,
+      );
+    }
+  }, [volume]);
+
+  useEffect(() => () => stopAudio(), []);
+
+  function togglePlayback() {
+    if (playing) {
+      stopAudio();
+      setPlaying(false);
+      return;
+    }
+
+    startAudio(active);
+    setPlaying(true);
+  }
+
+  function selectTrack(track) {
+    setActiveTrack(track.id);
+    if (playing) {
+      startAudio(track);
+    }
+  }
+
   return (
-    <div className="rounded-[1.6rem] bg-canvas p-5">
-      <div className="sound-bars">
-        <span />
-        <span />
-        <span />
-        <span />
-        <span />
+    <div className="space-y-5">
+      <div className="rounded-[1.6rem] bg-canvas p-5">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Now selected</p>
+            <h4 className="mt-2 text-2xl font-semibold">{active.title}</h4>
+            <p className="mt-2 text-sm text-ink/62">{active.subtitle}</p>
+          </div>
+          <div className="sound-bars" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <button
+            className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:brightness-95"
+            onClick={togglePlayback}
+            type="button"
+          >
+            {playing ? "Pause Music" : "Play Music"}
+          </button>
+          <label className="flex flex-1 items-center gap-3 text-sm font-semibold text-ink/62">
+            Volume
+            <input
+              className="range-thumb h-2 flex-1 cursor-pointer appearance-none rounded-full bg-white"
+              max="1"
+              min="0"
+              onChange={(event) => setVolume(Number(event.target.value))}
+              step="0.05"
+              type="range"
+              value={volume}
+            />
+          </label>
+        </div>
+        {audioMessage && <p className="mt-3 text-sm font-semibold text-[#a84236]">{audioMessage}</p>}
       </div>
-      <h4 className="mt-4 text-base font-semibold">{title}</h4>
-      <p className="mt-2 text-sm text-ink/62">{subtitle}</p>
-      <button className="mt-4 rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink" type="button">
-        Play Preview
-      </button>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {soundscapes.map((track) => (
+          <SoundCard
+            active={activeTrack === track.id}
+            key={track.id}
+            onSelect={() => selectTrack(track)}
+            playing={playing && activeTrack === track.id}
+            subtitle={track.subtitle}
+            title={track.title}
+          />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function SoundCard({ active, onSelect, playing, title, subtitle }) {
+  return (
+    <button
+      className={`rounded-[1.5rem] border p-5 text-left transition ${
+        active ? "border-primary bg-[#EAF2FF]" : "border-line bg-canvas hover:border-primary/35"
+      }`}
+      onClick={onSelect}
+      type="button"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h4 className="text-base font-semibold">{title}</h4>
+          <p className="mt-2 text-sm leading-6 text-ink/62">{subtitle}</p>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${playing ? "bg-primary text-white" : "bg-white text-primary"}`}>
+          {playing ? "Live" : active ? "Ready" : "Select"}
+        </span>
+      </div>
+    </button>
   );
 }
 
@@ -1822,7 +2543,7 @@ function AppRoutes({
           )
         }
       >
-        <Route element={<DashboardPage data={dashboardData} onSeedDemo={onSeedDemo} pageLoading={pageLoading} />} path="/dashboard" />
+        <Route element={<DashboardPage data={dashboardData} history={historyData} onSeedDemo={onSeedDemo} pageLoading={pageLoading} />} path="/dashboard" />
         <Route
           element={
             <CheckInPage
@@ -1968,12 +2689,17 @@ export default function App() {
 
   async function handleCheckInSubmit(form) {
     if (!session?.user_id) {
-      return;
+      return false;
     }
 
     setSubmitLoading(true);
     setStatusMessage("");
     try {
+      const noteParts = [form.note.trim()];
+      if (form.focus) {
+        noteParts.push(`Focus: ${form.focus}`);
+      }
+
       await apiRequest("/mood", {
         method: "POST",
         body: JSON.stringify({
@@ -1982,7 +2708,7 @@ export default function App() {
           stress: Number(form.stress),
           sleep: Number(form.sleep),
           energy: Number(form.energy),
-          note: form.note.trim(),
+          note: noteParts.filter(Boolean).join(" | "),
         }),
       });
 
@@ -2010,8 +2736,11 @@ export default function App() {
       await apiRequest(`/assess/${session.user_id}`, { method: "POST" });
       await loadAppData(session.user_id);
       setStatusMessage("AI risk assessment updated successfully.");
+      navigate("/risk-result");
+      return true;
     } catch (error) {
       setStatusMessage(error.message);
+      return false;
     } finally {
       setSubmitLoading(false);
     }

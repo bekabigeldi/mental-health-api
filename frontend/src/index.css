@@ -75,12 +75,22 @@ select {
   justify-content: center;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.25);
-  transition: transform 3s ease, box-shadow 3s ease;
+  transition: transform 1s ease, box-shadow 1s ease;
 }
 
-.breathing-orb--active {
-  transform: scale(1.08);
+.breathing-orb--inhale {
+  transform: scale(1.12);
   box-shadow: 0 0 0 24px rgba(255, 255, 255, 0.12), 0 0 0 48px rgba(255, 255, 255, 0.08);
+}
+
+.breathing-orb--hold {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 18px rgba(255, 255, 255, 0.1), 0 0 0 38px rgba(255, 255, 255, 0.06);
+}
+
+.breathing-orb--exhale {
+  transform: scale(0.94);
+  box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.08), 0 0 0 22px rgba(255, 255, 255, 0.04);
 }
 
 .breathing-orb__inner {
@@ -106,6 +116,7 @@ select {
   border-radius: 9999px;
   background: #4E7FA8;
   opacity: 0.8;
+  animation: soundPulse 1.6s ease-in-out infinite;
 }
 
 .sound-bars span:nth-child(1) {
@@ -114,18 +125,33 @@ select {
 
 .sound-bars span:nth-child(2) {
   height: 42px;
+  animation-delay: 0.12s;
 }
 
 .sound-bars span:nth-child(3) {
   height: 54px;
+  animation-delay: 0.24s;
 }
 
 .sound-bars span:nth-child(4) {
   height: 36px;
+  animation-delay: 0.36s;
 }
 
 .sound-bars span:nth-child(5) {
   height: 28px;
+  animation-delay: 0.48s;
+}
+
+@keyframes soundPulse {
+  0%,
+  100% {
+    transform: scaleY(0.72);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
 }
 
 .range-thumb::-moz-range-thumb {
