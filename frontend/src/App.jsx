@@ -160,22 +160,22 @@ function buildAdminMiniStats(adminDetail) {
 
 function scoreTone(level) {
   if (level === "HIGH") {
-    return "from-[#f6ab68] to-[#f5821f]";
+    return "from-[#e07070] to-[#c75454]";
   }
   if (level === "MEDIUM") {
-    return "from-[#f1dd94] to-[#d6bc62]";
+    return "from-[#E8B97A] to-[#C9953A]";
   }
-  return "from-[#c8daa0] to-[#a5bc63]";
+  return "from-[#5BA898] to-[#4E7FA8]";
 }
 
 function riskToneText(level) {
   if (level === "HIGH") {
-    return "text-[#cf6d16]";
+    return "text-[#b03030]";
   }
   if (level === "MEDIUM") {
-    return "text-[#9b7f19]";
+    return "text-[#9a6310]";
   }
-  return "text-[#6e8640]";
+  return "text-[#2e7065]";
 }
 
 function currentSectionLabel(pathname) {
@@ -183,17 +183,17 @@ function currentSectionLabel(pathname) {
     return "Admin";
   }
 
-  return navItems.find((item) => item.to === pathname)?.label || "Mental Health App";
+  return navItems.find((item) => item.to === pathname)?.label || "MindTrack";
 }
 
 function severityBadge(level) {
   if (level === "HIGH") {
-    return "bg-[#f7d7b2] text-[#c76415]";
+    return "bg-[#fde8e8] text-[#b03030]";
   }
   if (level === "MEDIUM") {
-    return "bg-[#efe2b8] text-[#8d781f]";
+    return "bg-[#fef3dc] text-[#9a6310]";
   }
-  return "bg-[#e2edc6] text-[#6a833c]";
+  return "bg-[#ddf0ec] text-[#2e7065]";
 }
 
 function AppShell({ session, statusMessage, onLogout }) {
@@ -204,10 +204,10 @@ function AppShell({ session, statusMessage, onLogout }) {
       <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="h-fit rounded-[2rem] bg-sidebar p-5 text-white shadow-panel xl:sticky xl:top-4">
           <div className="rounded-[1.6rem] bg-white/8 p-5">
-            <p className="text-xs uppercase tracking-[0.4em] text-white/60">Mental Health AI</p>
-            <h1 className="mt-4 font-display text-4xl leading-none">Calm early warning</h1>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/60">MindTrack</p>
+            <h1 className="mt-4 font-display text-4xl leading-none">Your wellness space</h1>
             <p className="mt-3 text-sm text-white/72">
-              Gentle monitoring, steady check-ins, and calmer awareness without overwhelming the user.
+              Gentle daily check-ins and steady awareness for long-term wellbeing.
             </p>
           </div>
 
@@ -242,12 +242,9 @@ function AppShell({ session, statusMessage, onLogout }) {
           </nav>
 
           <div className="mt-6 rounded-[1.4rem] bg-white/8 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/62">Showing now</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/62">Current page</p>
             <p className="mt-2 text-lg font-semibold">
               {currentSectionLabel(location.pathname)}
-            </p>
-            <p className="mt-2 text-sm text-white/72">
-              Calm visual language with softer contrast and less emotional overstimulation.
             </p>
           </div>
 
@@ -264,8 +261,8 @@ function AppShell({ session, statusMessage, onLogout }) {
           <header className="rounded-[2rem] bg-sand/96 p-5 shadow-panel backdrop-blur">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-ink/40">AI Early Warning System</p>
-                <h2 className="mt-2 font-display text-4xl sm:text-5xl">Mental Health Risk Detection</h2>
+                <p className="text-xs uppercase tracking-[0.35em] text-ink/40">Wellness Dashboard</p>
+                <h2 className="mt-2 font-display text-4xl sm:text-5xl">Mental Health Monitoring</h2>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -298,73 +295,40 @@ function AppShell({ session, statusMessage, onLogout }) {
 
 function WelcomePage() {
   return (
-    <div className="min-h-screen bg-canvas px-4 py-6 text-ink sm:px-6">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="relative overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-[#4c596a] via-[#7b6d60] to-primary p-8 text-white shadow-panel sm:p-10">
-          <div className="absolute left-[-60px] top-[-50px] h-44 w-44 rounded-full bg-white/10" />
-          <div className="absolute right-[-40px] top-24 h-52 w-52 rounded-full bg-primary-soft/20 blur-2xl" />
-          <div className="absolute bottom-[-50px] left-1/3 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-          <div className="relative">
-            <p className="inline-flex rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/74">
-              Early Warning Platform
-            </p>
-            <h1 className="mt-6 max-w-2xl font-display text-6xl leading-[0.88] sm:text-7xl">
-              Support calm monitoring without overwhelming the user.
+    <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-12 text-ink sm:px-6">
+      <div className="mx-auto w-full max-w-4xl">
+        <section className="relative overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-sidebar via-[#3A6A8A] to-primary p-10 text-white shadow-panel sm:p-14">
+          <div className="absolute left-[-60px] top-[-60px] h-48 w-48 rounded-full bg-white/6" />
+          <div className="absolute right-[-40px] bottom-[-40px] h-56 w-56 rounded-full bg-white/5 blur-2xl" />
+          <div className="relative text-center">
+            <h1 className="font-display text-5xl leading-[1.05] sm:text-6xl">
+              Take care of your mind,<br />one day at a time.
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-white/82">
-              A calmer web platform for daily mood tracking, AI risk insights, journal analysis, trend
-              detection, and supportive next-step guidance.
+            <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-white/80">
+              Track your mood, reflect on your day, and notice patterns over time. Private, simple, and always at your pace.
             </p>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <InfoPill title="Daily" value="Check-In" tone="bg-white/10" />
-              <InfoPill title="AI" value="Risk Insights" tone="bg-white/10" />
-              <InfoPill title="Personal" value="History" tone="bg-white/10" />
-            </div>
-
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap justify-center gap-3">
               <Link
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:brightness-95"
+                className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-ink transition hover:brightness-95"
                 to="/auth"
               >
-                Enter Platform
+                Get Started
               </Link>
-              <a
-                className="rounded-full border border-white/18 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-                href="#journey"
+              <Link
+                className="rounded-full border border-white/25 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                to="/auth"
               >
-                Explore Flow
-              </a>
+                Sign In
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="grid gap-6">
-          <div className="rounded-[2.2rem] bg-sand p-7 shadow-panel">
-            <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Approach</p>
-            <blockquote className="mt-6 max-w-md font-display text-5xl leading-[1.02] text-ink">
-              “Less friction, more continuity.”
-            </blockquote>
-            <p className="mt-5 text-sm leading-6 text-ink/60">
-              The platform avoids intense colors and avoids forcing long questionnaires every day.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3" id="journey">
-            <WelcomeStep number="01" title="Observe" text="Mood, stress, sleep, energy, and notes." color="bg-calm/50" />
-            <WelcomeStep number="02" title="Understand" text="AI risk scoring with clear, explainable factors." color="bg-soft" />
-            <WelcomeStep number="03" title="Reflect" text="Review history, patterns, and supportive suggestions." color="bg-[#f4eee6]" />
-          </div>
-
-          <div className="rounded-[2.2rem] bg-white p-6 shadow-panel">
-            <p className="text-xs uppercase tracking-[0.35em] text-ink/45">What this version shows</p>
-            <ul className="mt-4 space-y-3 text-sm text-ink/70">
-              <li>Low-friction daily check-ins with a calmer visual style</li>
-              <li>AI-assisted risk screening with explainable signals</li>
-              <li>Personal history and insight views for ongoing self-monitoring</li>
-            </ul>
-          </div>
-        </section>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3" id="journey">
+          <WelcomeStep number="01" title="Check In" text="Share how you're feeling — mood, sleep, stress, energy." color="bg-soft" />
+          <WelcomeStep number="02" title="Reflect" text="Write a few lines. Journaling helps reveal what's weighing on you." color="bg-calm/60" />
+          <WelcomeStep number="03" title="Notice Patterns" text="See trends over time and get supportive guidance." color="bg-sand" />
+        </div>
       </div>
     </div>
   );
@@ -372,43 +336,33 @@ function WelcomePage() {
 
 function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, onAuthSubmit, onAnonymous }) {
   return (
-    <div className="min-h-screen bg-canvas px-4 py-6 text-ink sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_0.94fr]">
-        <section className="rounded-[2.4rem] bg-white p-8 shadow-panel sm:p-10">
-          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Welcome</p>
-          <h1 className="mt-4 font-display text-6xl leading-[0.9]">
-            Personalize mental health monitoring with low-friction AI support.
-          </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-ink/68">
-            Sign in to save your progress, or continue anonymously for a quick check-in and private risk view.
-          </p>
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-10 text-ink sm:px-6">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <p className="text-xs uppercase tracking-[0.4em] text-ink/40">MindTrack</p>
+          <h1 className="mt-3 font-display text-4xl">Welcome back</h1>
+          <p className="mt-2 text-sm text-ink/55">Sign in or create an account to continue.</p>
+        </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <FeatureCard title="Daily Check-In" text="Short daily input for mood, stress, sleep, and energy." />
-            <FeatureCard title="AI Risk Result" text="A clearer risk score with explanations and alert signals." />
-            <FeatureCard title="Personal History" text="Track patterns, trends, and supportive recommendations over time." />
-          </div>
-        </section>
-
-        <section className="rounded-[2.4rem] bg-sand p-6 shadow-panel sm:p-8">
-          <div className="mb-6 flex rounded-full bg-white p-1 shadow-sm">
+        <section className="rounded-[2rem] bg-white p-6 shadow-panel sm:p-8">
+          <div className="mb-6 flex rounded-full bg-canvas p-1">
             <button
-              className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${
-                authMode === "login" ? "bg-primary text-white" : "text-ink/70"
+              className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                authMode === "login" ? "bg-primary text-white shadow-sm" : "text-ink/60"
               }`}
               onClick={() => setAuthMode("login")}
               type="button"
             >
-              Login
+              Sign In
             </button>
             <button
-              className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${
-                authMode === "register" ? "bg-primary text-white" : "text-ink/70"
+              className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                authMode === "register" ? "bg-primary text-white shadow-sm" : "text-ink/60"
               }`}
               onClick={() => setAuthMode("register")}
               type="button"
             >
-              Register
+              Create Account
             </button>
           </div>
 
@@ -416,7 +370,7 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, o
             <FormField
               label="Email"
               onChange={(value) => setAuthForm((current) => ({ ...current, email: value }))}
-              placeholder="student@example.com"
+              placeholder="you@example.com"
               type="email"
               value={authForm.email}
             />
@@ -432,29 +386,35 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, o
               disabled={authLoading}
               type="submit"
             >
-              {authLoading ? "Please wait..." : authMode === "register" ? "Create Account" : "Login"}
+              {authLoading ? "Please wait..." : authMode === "register" ? "Create Account" : "Sign In"}
             </button>
           </form>
 
-          <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-ink/35">
-            <span className="h-px flex-1 bg-ink/10" />
+          <div className="my-5 flex items-center gap-3 text-xs text-ink/30">
+            <span className="h-px flex-1 bg-line" />
             or
-            <span className="h-px flex-1 bg-ink/10" />
+            <span className="h-px flex-1 bg-line" />
           </div>
 
           <button
-            className="w-full rounded-[1.2rem] bg-soft px-5 py-3 text-sm font-semibold text-ink transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-[1.2rem] border border-line bg-sand px-5 py-3 text-sm font-semibold text-ink transition hover:border-primary/30 hover:bg-soft disabled:cursor-not-allowed disabled:opacity-60"
             disabled={authLoading}
             onClick={onAnonymous}
             type="button"
           >
-            Continue in Anonymous Mode
+            Try without an account
           </button>
 
-          <p className="mt-5 text-sm text-ink/55">
-            This app provides AI-supported screening and is not a substitute for clinical diagnosis.
+          <p className="mt-5 text-center text-xs text-ink/40">
+            For personal wellness tracking only — not a clinical service.
           </p>
         </section>
+
+        <div className="mt-5 text-center">
+          <Link className="text-sm text-ink/50 hover:text-ink" to="/">
+            ← Back to home
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -475,7 +435,7 @@ function DashboardPage({ data, pageLoading, onSeedDemo }) {
             <p className="text-sm leading-6 text-ink/68">{questionnaireStatus.message}</p>
             <span
               className={`inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] ${
-                questionnaireStatus.due_now ? "bg-[#f7d7b2] text-[#c76415]" : "bg-[#e2edc6] text-[#6a833c]"
+                questionnaireStatus.due_now ? "bg-[#fde8e8] text-[#b03030]" : "bg-[#ddf0ec] text-[#2e7065]"
               }`}
             >
               {questionnaireStatus.due_now ? "Recommended Now" : "Available Anytime"}
@@ -555,7 +515,7 @@ function DashboardPage({ data, pageLoading, onSeedDemo }) {
                 <EmptyState text="No active alerts yet. Alerts appear when elevated risk or a downward pattern is detected." />
               ) : (
                 data.alerts.map((alert) => (
-                  <div className="rounded-[1.4rem] bg-[#fff4ea] px-4 py-4" key={alert.id}>
+                  <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4" key={alert.id}>
                     <div className="flex items-center justify-between gap-3">
                       <p className={`text-sm font-semibold uppercase tracking-[0.2em] ${riskToneText(alert.severity)}`}>
                         {alert.severity}
@@ -632,7 +592,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
             onChange={(value) => setForm((current) => ({ ...current, stress: value }))}
           />
           <SliderCard
-            accent="bg-soft text-[#6a833c]"
+            accent="bg-soft text-primary-soft"
             label="Energy"
             value={form.energy}
             onChange={(value) => setForm((current) => ({ ...current, energy: value }))}
@@ -662,10 +622,10 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
         <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Step 2</p>
         <h3 className="mt-3 font-display text-4xl">Deeper screening</h3>
-        <div className="mt-4 rounded-[1.5rem] bg-gradient-to-r from-[#fff4ea] to-[#f2f0e8] px-5 py-5">
+        <div className="mt-4 rounded-[1.5rem] bg-gradient-to-r from-[#EAF2FF] to-[#EEF3F9] px-5 py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-semibold text-ink">Want a richer AI reading?</p>
+              <p className="text-sm font-semibold text-ink">Want a deeper check-in?</p>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-ink/68">
                 {questionnaireStatus?.message ||
                   "Taking the deeper screening gives the system more context and can reveal hidden stress patterns, emotional strain, and early changes before they become obvious."}
@@ -687,7 +647,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
         </div>
 
         <div className="mt-4 rounded-[1.5rem] bg-canvas px-5 py-4 text-sm leading-6 text-ink/68">
-          Use the 1 to 5 scale below, where 1 means “not like me today” and 5 means “very true for me lately”.
+          Use the 1 to 5 scale below, where 1 means "not like me today" and 5 means "very true for me lately".
         </div>
 
         {form.includeQuestionnaire ? (
@@ -740,7 +700,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
         <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Step 3</p>
         <h3 className="mt-3 font-display text-4xl">Journal reflection</h3>
         <div className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[1.7rem] bg-gradient-to-br from-[#fff4ea] to-[#f4ede5] p-6">
+          <div className="rounded-[1.7rem] bg-gradient-to-br from-[#EAF2FF] to-[#E8F2EF] p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-ink/45">Prompt</p>
             <p className="mt-4 text-sm leading-7 text-ink/68">
               Write freely about how you feel, what is causing pressure, whether you feel supported, and
@@ -759,7 +719,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
               disabled={submitLoading}
               type="submit"
             >
-              {submitLoading ? "Calculating your assessment..." : "Generate AI Risk Assessment"}
+              {submitLoading ? "Calculating your assessment..." : "Submit & View Results"}
             </button>
           </div>
         </div>
@@ -808,7 +768,7 @@ function RiskResultPage({ data }) {
           <ProfessionalGuidance guidance={guidance} />
         </Card>
 
-        <Card title="Explainable factors" eyebrow="AI Drivers">
+        <Card title="Explainable factors" eyebrow="Key Signals">
           <div className="space-y-3">
             {(assessment?.explanations || []).length === 0 ? (
               <EmptyState text="Run a complete check-in to generate explainable factors." />
@@ -1103,7 +1063,7 @@ function SettingsPage({ session, onFeedback }) {
         </Card>
 
         <Card title="Safety note" eyebrow="Clinical Boundary">
-          <div className="rounded-[1.4rem] bg-[#fff4ea] px-4 py-4 text-sm leading-7 text-ink/68">
+          <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4 text-sm leading-7 text-ink/68">
             The platform is designed for risk screening and early warning support. It should not be used as a
             standalone diagnosis. If distress feels urgent or overwhelming, a licensed professional or local
             emergency support should be contacted directly.
@@ -1204,7 +1164,7 @@ function AdminPage({ adminOverview, adminDetail, onSelectUser, adminLoading, isA
                         {user.latest_assessment?.risk_level || "No Risk"}
                       </span>
                       <span className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.25em] ${
-                        user.questionnaire_status?.due_now ? "bg-[#f7d7b2] text-[#c76415]" : "bg-[#e2edc6] text-[#6a833c]"
+                        user.questionnaire_status?.due_now ? "bg-[#fde8e8] text-[#b03030]" : "bg-[#ddf0ec] text-[#2e7065]"
                       }`}>
                         {user.questionnaire_status?.due_now ? "Questionnaire Due" : "Questionnaire OK"}
                       </span>
@@ -1332,7 +1292,7 @@ function AdminPage({ adminOverview, adminDetail, onSelectUser, adminLoading, isA
                   <EmptyState text="No alerts have been raised for this user yet." />
                 ) : (
                   adminDetail.alerts.slice(0, 4).map((item, index) => (
-                    <div className="rounded-[1.4rem] bg-[#fff4ea] px-4 py-4" key={`${item.created_at}-${index}`}>
+                    <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4" key={`${item.created_at}-${index}`}>
                       <div className="flex items-center justify-between gap-3">
                         <p className={`text-xs font-semibold uppercase tracking-[0.25em] ${riskToneText(item.severity)}`}>
                           {item.severity}
@@ -1373,7 +1333,7 @@ function AdminStandalonePage(props) {
     <div className="min-h-screen bg-canvas px-4 py-6 text-ink sm:px-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <header className="rounded-[2rem] bg-sand/96 p-5 shadow-panel backdrop-blur">
-          <p className="text-xs uppercase tracking-[0.35em] text-ink/40">AI Early Warning System</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-ink/40">MindTrack Admin</p>
           <h1 className="mt-2 font-display text-4xl sm:text-5xl">Admin Monitoring Console</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/64">
             Restricted access for reviewing user trends, screening cadence, alerts, and elevated-risk profiles.
@@ -1496,11 +1456,11 @@ function AdminMiniTrend({ history, assessments }) {
     <div className="rounded-[1.5rem] bg-canvas p-4">
       <div className="mb-4 flex flex-wrap gap-4 text-xs uppercase tracking-[0.25em] text-ink/50">
         <span className="inline-flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#a5bc63]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#68A898]" />
           Mood
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#f5821f]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#4E7FA8]" />
           Stress
         </span>
         <span className="inline-flex items-center gap-2">
@@ -1522,8 +1482,8 @@ function AdminMiniTrend({ history, assessments }) {
             y2={height - padding - level * (height - padding * 2)}
           />
         ))}
-        <polyline fill="none" points={moodLine.join(" ")} stroke="#a5bc63" strokeLinecap="round" strokeWidth="4" />
-        <polyline fill="none" points={stressLine.join(" ")} stroke="#f5821f" strokeLinecap="round" strokeWidth="4" />
+        <polyline fill="none" points={moodLine.join(" ")} stroke="#68A898" strokeLinecap="round" strokeWidth="4" />
+        <polyline fill="none" points={stressLine.join(" ")} stroke="#4E7FA8" strokeLinecap="round" strokeWidth="4" />
         {riskLine.length > 1 && (
           <polyline fill="none" points={riskLine.join(" ")} stroke="#6f8aa0" strokeLinecap="round" strokeWidth="4" />
         )}
@@ -1538,7 +1498,7 @@ function AdminMiniTrend({ history, assessments }) {
 function MetricRing({ percent, level }) {
   const safePercent = Math.max(0, Math.min(100, percent));
   const ringColor =
-    level === "HIGH" ? "#f5821f" : level === "MEDIUM" ? "#d6bc62" : "#a5bc63";
+    level === "HIGH" ? "#c75454" : level === "MEDIUM" ? "#C9953A" : "#4E7FA8";
 
   return (
     <div
@@ -1661,7 +1621,7 @@ function ProfessionalGuidance({ guidance }) {
       <GuidanceSection items={guidance.follow_up_actions} title="What To Monitor Next" tone="bg-[#f4eee6]" />
 
       {guidance.escalation_note && (
-        <div className="rounded-[1.4rem] bg-[#fff4ea] px-4 py-4">
+        <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4">
           <p className="text-xs uppercase tracking-[0.3em] text-ink/42">When To Seek Help</p>
           <p className="mt-3 text-sm leading-6 text-ink/68">{guidance.escalation_note}</p>
         </div>
@@ -1705,16 +1665,16 @@ function TrendChart({ points }) {
             y2={height - padding - level * (height - padding * 2)}
           />
         ))}
-        <polyline fill="none" points={moodPoints.join(" ")} stroke="#a5bc63" strokeLinecap="round" strokeWidth="4" />
-        <polyline fill="none" points={riskPoints.join(" ")} stroke="#f5821f" strokeLinecap="round" strokeWidth="4" />
+        <polyline fill="none" points={moodPoints.join(" ")} stroke="#68A898" strokeLinecap="round" strokeWidth="4" />
+        <polyline fill="none" points={riskPoints.join(" ")} stroke="#4E7FA8" strokeLinecap="round" strokeWidth="4" />
         {points.map((point, index) => {
           const x = padding + (index * (width - padding * 2)) / Math.max(points.length - 1, 1);
           const moodY = height - padding - ((point.mood || 0) / 10) * (height - padding * 2);
           const riskY = height - padding - ((point.risk_score || 0) / 1) * (height - padding * 2);
           return (
             <g key={point.created_at}>
-              <circle cx={x} cy={moodY} fill="#a5bc63" r="5" />
-              <circle cx={x} cy={riskY} fill="#f5821f" r="5" />
+              <circle cx={x} cy={moodY} fill="#68A898" r="5" />
+              <circle cx={x} cy={riskY} fill="#4E7FA8" r="5" />
             </g>
           );
         })}

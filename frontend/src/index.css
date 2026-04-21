@@ -5,8 +5,8 @@
 @tailwind utilities;
 
 :root {
-  color: #344055;
-  background: #efe8dd;
+  color: #1B2A3B;
+  background: #F3F6FA;
   font-family: "Manrope", sans-serif;
 }
 
@@ -14,9 +14,9 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at top left, rgba(245, 130, 31, 0.14), transparent 24%),
-    radial-gradient(circle at top right, rgba(165, 188, 99, 0.14), transparent 22%),
-    linear-gradient(180deg, #f5eee5 0%, #efe8dd 100%);
+    radial-gradient(circle at top left, rgba(78, 127, 168, 0.08), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(104, 168, 152, 0.08), transparent 30%),
+    linear-gradient(180deg, #EEF3F9 0%, #F3F6FA 100%);
 }
 
 * {
@@ -42,8 +42,8 @@ select {
   width: 22px;
   border-radius: 9999px;
   border: 3px solid #ffffff;
-  background: #f5821f;
-  box-shadow: 0 8px 18px rgba(52, 64, 85, 0.16);
+  background: #4E7FA8;
+  box-shadow: 0 8px 18px rgba(27, 42, 59, 0.16);
 }
 
 .metric-ring {
@@ -104,7 +104,7 @@ select {
 .sound-bars span {
   width: 12px;
   border-radius: 9999px;
-  background: #f5821f;
+  background: #4E7FA8;
   opacity: 0.8;
 }
 
@@ -133,6 +133,6 @@ select {
   width: 22px;
   border-radius: 9999px;
   border: 3px solid #ffffff;
-  background: #f5821f;
-  box-shadow: 0 8px 18px rgba(52, 64, 85, 0.16);
+  background: #4E7FA8;
+  box-shadow: 0 8px 18px rgba(27, 42, 59, 0.16);
 }

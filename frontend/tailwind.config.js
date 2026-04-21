@@ -4,15 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: "#efe8dd",
-        ink: "#344055",
-        sand: "#f7f1e8",
-        line: "#e4d8ca",
-        primary: "#f5821f",
-        "primary-soft": "#a5bc63",
-        soft: "#eef3df",
-        calm: "#f7d5b3",
-        sidebar: "#7f7065",
+        canvas: "#F3F6FA",
+        ink: "#1B2A3B",
+        sand: "#EEF3F9",
+        line: "#D4E0EC",
+        primary: "#4E7FA8",
+        "primary-soft": "#68A898",
+        soft: "#E8F2EF",
+        calm: "#EAE5F4",
+        sidebar: "#2A4A6B",
+        accent: "#9B84C4",
       },
       fontFamily: {
         display: ["Sora", "sans-serif"],
