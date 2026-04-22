@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   BrowserRouter,
   Link,
@@ -10,6 +10,238 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
+const LangContext = createContext({ lang: "en", setLang: () => {} });
+const useLang = () => useContext(LangContext);
+
+const TRANS = {
+  en: {
+    // Nav
+    navDashboard: "Dashboard", navCheckin: "Check-In", navRisk: "Risk Result",
+    navInsights: "Insights", navHistory: "History", navWellness: "Wellness", navSettings: "Settings",
+    // Sidebar
+    sidebarTitle: "Your wellness space",
+    sidebarSub: "Gentle daily check-ins and steady awareness for long-term wellbeing.",
+    currentPage: "Current page", logout: "Logout", anonSession: "Anonymous Session",
+    // Header
+    headerEyebrow: "Wellness Dashboard", headerTitle: "Mental Health Monitoring",
+    btnCheckin: "Daily Check-In", btnInsights: "View Insights",
+    // Dashboard
+    streakLabel: "Check-In Streak", consistencyLabel: "Weekly Consistency",
+    baselineLabel: "vs Your Baseline", baselineEmpty: "Available after 2+ check-ins.",
+    personalBaseline: "Personal Baseline", daysInRow: "days in a row", dayInRow: "day in a row",
+    lastSevenDays: "last 7 days",
+    safetyNotice: "Safety Notice",
+    safetyText: "Your current screening shows elevated risk signals. You don't need to face this alone. Reaching out to someone you trust — a friend, counselor, or helpline — can make a real difference.",
+    deeperScreening: "Deeper screening", recNow: "Recommended Now", availableAnytime: "Available Anytime",
+    currentResult: "Current Screening Result",
+    scoreDesc: "Hybrid score based on daily signals, journal tone, recent trend detection, and the latest available questionnaire.",
+    loadDemo: "Load Demo Data", score: "Score", trend: "Trend", textDistress: "Text Distress",
+    riskRing: "Risk Ring", overallRisk: "Overall Risk Score", refreshing: "Refreshing...",
+    alertActive: "Alert active", stableMonitoring: "Stable monitoring", lastUpdated: "Last updated",
+    weekSummary: "Short Weekly Summary", signals: "Signals", supportPlan: "Support Plan", aiGuidance: "AI Guidance",
+    alerts: "Alerts", earlyWarning: "Early Warning",
+    noAlerts: "No active alerts yet. Alerts appear when elevated risk or a downward pattern is detected.",
+    recQueue: "Recommendation queue", recEmpty: "Recommendations appear after the first complete assessment.",
+    // Check-In
+    step1: "Step 1", moodCheckinTitle: "Daily mood check-in",
+    step2: "Step 2", deeperTitle: "Deeper screening",
+    wantDeeper: "Want a deeper check-in?",
+    skipNow: "Skip For Now", takeDeeper: "Take Deeper Screening",
+    quickModeActive: "Quick mode is active for today.",
+    quickModeDesc: "You can continue with the short daily check-in, or unlock the deeper screening any time.",
+    step3: "Step 3", journalTitle: "Journal reflection", journalPrompt: "Prompt",
+    journalPromptText: "Write freely about how you feel, what is causing pressure, whether you feel supported, and whether sleep or energy changed this week.",
+    journalPlaceholder: "Example: I felt overwhelmed and exhausted this week. It was hard to sleep and my stress kept building before deadlines.",
+    submitBtn: "Submit & View Results", submittingBtn: "Calculating your assessment...",
+    todayFocus: "Today's focus", focusSub: "Pick the main context for this check-in.",
+    quickNote: "Quick note", notePlaceholder: "Describe what stood out today...",
+    moodLabel: "Mood", stressLabel: "Stress", energyLabel: "Energy", sleepLabel: "Sleep Hours",
+    scaleHint: "Use the 1 to 5 scale below, where 1 means \"not like me today\" and 5 means \"very true for me lately\".",
+    answered: "Answered", of: "of", tapSame: "Tap the same circle again to clear it.",
+    nextStatement: "Next Statement",
+    questionnaireInstructions: "Choose how accurately each statement reflects you.",
+    validationMsg: "Please answer statement {n} before submitting the deeper screening.",
+    explainableFactors: "Explainable factors", noExplain: "Run a complete check-in to generate explainable factors.",
+    playMusic: "Play Music", pauseMusic: "Pause Music", volume: "Volume", nowSelected: "Now selected",
+    // Risk Result
+    noDataTitle: "No assessment yet", noDataDesc: "Complete a check-in first so MindTrack can calculate a fresh risk result and build a support plan.",
+    startCheckin: "Start Check-In", riskResult: "Risk Result",
+    riskScoreDesc: "This score estimates current vulnerability and warning patterns. It should support awareness, not replace a clinician's evaluation.",
+    componentBreakdown: "Component Breakdown", keySignals: "Key Signals",
+    latestInputs: "Latest inputs", assessmentContext: "Assessment Context",
+    moodScreen: "Mood Screen", stressScreen: "Stress Screen", journalTone: "Journal tone:",
+    reachOutTitle: "Reach out — you don't have to manage this alone",
+    reachOutText: "These results suggest elevated distress. Speaking with someone you trust — a counselor, doctor, or crisis line — is a meaningful next step.",
+    // Insights
+    weeklyReport: "Weekly Report", sevenDaySummary: "7-Day Summary",
+    bestDay: "Best day", hardestDay: "Hardest day",
+    weeklyTrend: "Weekly trend", insightsEyebrow: "Insights",
+    patternScan: "Pattern scan", deviationDetection: "Deviation Detection",
+    trendDelta: "Trend Delta", declineStreak: "Decline Streak", deviationFlag: "Deviation Flag",
+    detected: "Detected", stable: "Stable",
+    deviationYes: "The short-term pattern deviates from your recent baseline and may need closer attention.",
+    deviationNo: "No significant downward deviation in the recent pattern.",
+    baselineMood: "Baseline Mood", baselineStress: "Baseline Stress",
+    baselineSleep: "Baseline Sleep", baselineEnergy: "Baseline Energy",
+    journalSignal: "Latest journal signal", nlpLayer: "NLP Layer",
+    sentiment: "Sentiment", distress: "Distress",
+    recentTimeline: "Recent timeline", historyPreview: "History Preview",
+    journalInsightEmpty: "Journal-based insight appears after the first reflection.",
+    streakMsg: "day check-in streak — keep the habit going.",
+    avgMood: "Avg Mood", avgStress: "Avg Stress", avgSleep: "Avg Sleep", consistency: "Consistency",
+    // History
+    fullHistory: "Full history", timeline: "Timeline",
+    noHistory: "No history yet. Complete your first screening to create a timeline.",
+    noNote: "No note added.",
+    // Wellness
+    breathingExercise: "Breathing Exercise", complete: "Complete", niceWork: "Nice work",
+    pause: "Pause", start: "Start", restart: "Restart", reset: "Reset",
+    quickRecovery: "Quick recovery tools", mindfulSupport: "Mindful Support",
+    soundscapes: "Soundscapes", recoveryAudio: "Recovery Audio",
+    resetRoutine: "Reset routine", aftercare: "Aftercare",
+    // Settings
+    profileSummary: "Profile summary", account: "Account",
+    signedIn: "Signed in", privateMode: "Private mode",
+    goal: "Goal", reminder: "Reminder", language: "Language",
+    notifSettings: "Notification settings", preferences: "Preferences",
+    reminderTime: "Reminder time", weeklyGoal: "Weekly check-in goal",
+    dailyReminders: "Daily reminders", dailyRemindersDesc: "Show reminders for the daily check-in.",
+    soundSupport: "Sound support", soundSupportDesc: "Enable ambient audio in wellness sessions.",
+    privacyLocale: "Privacy and localization", personalization: "Personalization",
+    privacyScreen: "Privacy screen", privacyScreenDesc: "Hide sensitive notes in shared presentation moments.",
+    interfaceLang: "Interface language",
+    feedbackTitle: "Feedback", helpImprove: "Help Improve",
+    feedbackPlaceholder: "Share what could be improved in the platform.",
+    submitFeedback: "Submit Feedback", sending: "Sending...",
+    connectedSignals: "Connected signals", ecosystem: "Ecosystem",
+    safetyNoteTitle: "Safety note", clinicalBoundary: "Clinical Boundary",
+    safetyNoteText: "The platform is designed for risk screening and early warning support. It should not be used as a standalone diagnosis. If distress feels urgent or overwhelming, a licensed professional or local emergency support should be contacted directly.",
+    // Guidance
+    guidanceEmpty: "Complete a full assessment to generate a structured professional guidance report.",
+    guidanceDrivers: "Key Risk Drivers", guidanceToday: "What To Do Today",
+    guidanceMonitor: "What To Monitor Next", guidanceSafety: "When To Seek Help",
+    noSignal: "No specific signal is available yet.",
+    // Misc
+    noData: "NO DATA", pending: "Pending", riskScore: "Risk Score",
+    entries: "Entries", unreadAlerts: "Alerts",
+  },
+  ru: {
+    // Nav
+    navDashboard: "Главная", navCheckin: "Чек-ин", navRisk: "Результат риска",
+    navInsights: "Аналитика", navHistory: "История", navWellness: "Здоровье", navSettings: "Настройки",
+    // Sidebar
+    sidebarTitle: "Ваше пространство",
+    sidebarSub: "Мягкий ежедневный мониторинг для долгосрочного благополучия.",
+    currentPage: "Текущий раздел", logout: "Выйти", anonSession: "Анонимная сессия",
+    // Header
+    headerEyebrow: "Панель здоровья", headerTitle: "Мониторинг психического здоровья",
+    btnCheckin: "Ежедневный чек-ин", btnInsights: "Аналитика",
+    // Dashboard
+    streakLabel: "Серия чек-инов", consistencyLabel: "Недельная регулярность",
+    baselineLabel: "vs Ваша норма", baselineEmpty: "Доступно после 2+ чек-инов.",
+    personalBaseline: "Личная норма", daysInRow: "дней подряд", dayInRow: "день подряд",
+    lastSevenDays: "последние 7 дней",
+    safetyNotice: "Важно",
+    safetyText: "Ваши результаты показывают повышенный уровень риска. Вам не нужно справляться с этим в одиночку. Обратитесь к тому, кому доверяете — другу, специалисту или на горячую линию.",
+    deeperScreening: "Детальная оценка", recNow: "Рекомендуется", availableAnytime: "Доступно",
+    currentResult: "Текущий результат",
+    scoreDesc: "Гибридная оценка на основе ежедневных сигналов, тона дневника, обнаружения трендов и последнего опросника.",
+    loadDemo: "Загрузить демо", score: "Оценка", trend: "Тренд", textDistress: "Стресс текста",
+    riskRing: "Кольцо риска", overallRisk: "Общий уровень риска", refreshing: "Обновление...",
+    alertActive: "Активное предупреждение", stableMonitoring: "Стабильный мониторинг", lastUpdated: "Обновлено",
+    weekSummary: "Краткая недельная сводка", signals: "Сигналы", supportPlan: "План поддержки", aiGuidance: "Рекомендации",
+    alerts: "Оповещения", earlyWarning: "Раннее предупреждение",
+    noAlerts: "Активных оповещений нет. Они появятся при повышенном риске или спаде настроения.",
+    recQueue: "Очередь рекомендаций", recEmpty: "Рекомендации появятся после первой полной оценки.",
+    // Check-In
+    step1: "Шаг 1", moodCheckinTitle: "Ежедневный чек-ин",
+    step2: "Шаг 2", deeperTitle: "Детальная оценка",
+    wantDeeper: "Хотите более подробный чек-ин?",
+    skipNow: "Пропустить", takeDeeper: "Пройти детальную оценку",
+    quickModeActive: "Активен быстрый режим.",
+    quickModeDesc: "Вы можете продолжить с кратким чек-ином или пройти детальную оценку в любое время.",
+    step3: "Шаг 3", journalTitle: "Запись в дневник", journalPrompt: "Подсказка",
+    journalPromptText: "Напишите свободно о том, как вы себя чувствуете, что вызывает давление, ощущаете ли поддержку и изменился ли сон или энергия на этой неделе.",
+    journalPlaceholder: "Например: На этой неделе я чувствовал себя перегруженным. Было трудно спать, стресс накапливался.",
+    submitBtn: "Отправить и смотреть результаты", submittingBtn: "Расчёт оценки...",
+    todayFocus: "Фокус на сегодня", focusSub: "Выберите контекст этого чек-ина.",
+    quickNote: "Краткая заметка", notePlaceholder: "Что выделилось сегодня...",
+    moodLabel: "Настроение", stressLabel: "Стресс", energyLabel: "Энергия", sleepLabel: "Часы сна",
+    scaleHint: "Используйте шкалу 1–5, где 1 означает «совсем не про меня», а 5 — «очень похоже на меня».",
+    answered: "Отвечено", of: "из", tapSame: "Нажмите тот же круг, чтобы снять ответ.",
+    nextStatement: "Следующее утверждение",
+    questionnaireInstructions: "Выберите, насколько точно каждое утверждение описывает вас.",
+    validationMsg: "Пожалуйста, ответьте на утверждение {n} перед отправкой.",
+    explainableFactors: "Объяснимые факторы", noExplain: "Пройдите полный чек-ин для получения объяснений.",
+    playMusic: "Включить", pauseMusic: "Пауза", volume: "Громкость", nowSelected: "Сейчас выбрано",
+    // Risk Result
+    noDataTitle: "Оценка отсутствует", noDataDesc: "Сначала пройдите чек-ин, чтобы MindTrack рассчитал результат и составил план поддержки.",
+    startCheckin: "Начать чек-ин", riskResult: "Результат риска",
+    riskScoreDesc: "Эта оценка определяет текущую уязвимость. Она поддерживает осознанность, но не заменяет консультацию специалиста.",
+    componentBreakdown: "Компоненты оценки", keySignals: "Ключевые сигналы",
+    latestInputs: "Последние данные", assessmentContext: "Контекст оценки",
+    moodScreen: "Скрининг настроения", stressScreen: "Скрининг стресса", journalTone: "Тон дневника:",
+    reachOutTitle: "Обратитесь за помощью — вам не нужно справляться одному",
+    reachOutText: "Эти результаты указывают на повышенный стресс. Поговорите с тем, кому доверяете — консультантом, врачом или позвоните на горячую линию.",
+    // Insights
+    weeklyReport: "Недельный отчёт", sevenDaySummary: "Сводка за 7 дней",
+    bestDay: "Лучший день", hardestDay: "Сложный день",
+    weeklyTrend: "Недельный тренд", insightsEyebrow: "Аналитика",
+    patternScan: "Анализ паттернов", deviationDetection: "Обнаружение отклонений",
+    trendDelta: "Дельта тренда", declineStreak: "Серия снижений", deviationFlag: "Флаг отклонения",
+    detected: "Обнаружено", stable: "Стабильно",
+    deviationYes: "Краткосрочный паттерн отклоняется от вашей нормы и требует внимания.",
+    deviationNo: "Существенных отклонений в недавнем паттерне не обнаружено.",
+    baselineMood: "Базовое настроение", baselineStress: "Базовый стресс",
+    baselineSleep: "Базовый сон", baselineEnergy: "Базовая энергия",
+    journalSignal: "Последний сигнал дневника", nlpLayer: "NLP анализ",
+    sentiment: "Тональность", distress: "Стресс",
+    recentTimeline: "Последние записи", historyPreview: "Предпросмотр истории",
+    journalInsightEmpty: "Анализ дневника появится после первой записи.",
+    streakMsg: "дней чек-ина подряд — продолжайте в том же духе.",
+    avgMood: "Ср. настроение", avgStress: "Ср. стресс", avgSleep: "Ср. сон", consistency: "Регулярность",
+    // History
+    fullHistory: "Полная история", timeline: "Хронология",
+    noHistory: "История пуста. Пройдите первый скрининг, чтобы создать хронологию.",
+    noNote: "Заметка не добавлена.",
+    // Wellness
+    breathingExercise: "Дыхательное упражнение", complete: "Завершено", niceWork: "Отлично",
+    pause: "Пауза", start: "Начать", restart: "Повторить", reset: "Сброс",
+    quickRecovery: "Быстрое восстановление", mindfulSupport: "Осознанная поддержка",
+    soundscapes: "Фоновые звуки", recoveryAudio: "Аудио для восстановления",
+    resetRoutine: "Программа восстановления", aftercare: "Уход после",
+    // Settings
+    profileSummary: "Профиль", account: "Аккаунт",
+    signedIn: "Авторизован", privateMode: "Приватный режим",
+    goal: "Цель", reminder: "Напоминание", language: "Язык",
+    notifSettings: "Настройки уведомлений", preferences: "Предпочтения",
+    reminderTime: "Время напоминания", weeklyGoal: "Цель чек-инов в неделю",
+    dailyReminders: "Ежедневные напоминания", dailyRemindersDesc: "Показывать напоминания о ежедневном чек-ине.",
+    soundSupport: "Звуковая поддержка", soundSupportDesc: "Включить фоновые звуки в сессиях здоровья.",
+    privacyLocale: "Конфиденциальность", personalization: "Персонализация",
+    privacyScreen: "Экран конфиденциальности", privacyScreenDesc: "Скрыть чувствительные заметки в презентационных моментах.",
+    interfaceLang: "Язык интерфейса",
+    feedbackTitle: "Обратная связь", helpImprove: "Помочь улучшить",
+    feedbackPlaceholder: "Поделитесь предложениями по улучшению платформы.",
+    submitFeedback: "Отправить отзыв", sending: "Отправка...",
+    connectedSignals: "Подключённые устройства", ecosystem: "Экосистема",
+    safetyNoteTitle: "Важное примечание", clinicalBoundary: "Клинические ограничения",
+    safetyNoteText: "Платформа предназначена для скрининга рисков. Это не замена консультации специалиста. При остром стрессе обратитесь к врачу или на горячую линию.",
+    // Guidance
+    guidanceEmpty: "Завершите полную оценку, чтобы получить структурированные рекомендации.",
+    guidanceDrivers: "Ключевые факторы риска", guidanceToday: "Что делать сегодня",
+    guidanceMonitor: "Что отслеживать", guidanceSafety: "Когда обратиться за помощью",
+    noSignal: "Конкретных сигналов пока нет.",
+    // Misc
+    noData: "НЕТ ДАННЫХ", pending: "Ожидание", riskScore: "Уровень риска",
+    entries: "Записей", unreadAlerts: "Оповещений",
+  },
+};
+
+function tr(key, lang) {
+  return TRANS[lang]?.[key] ?? TRANS.en[key] ?? key;
+}
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const SESSION_KEY = "mental-health-session";
@@ -303,91 +535,157 @@ function severityBadge(level) {
   return "bg-[#ddf0ec] text-[#2e7065]";
 }
 
+const navKeys = [
+  { to: "/dashboard", key: "navDashboard", initial: "D" },
+  { to: "/check-in", key: "navCheckin", initial: "C" },
+  { to: "/risk-result", key: "navRisk", initial: "R" },
+  { to: "/insights", key: "navInsights", initial: "I" },
+  { to: "/history", key: "navHistory", initial: "H" },
+  { to: "/wellness", key: "navWellness", initial: "W" },
+  { to: "/settings", key: "navSettings", initial: "S" },
+];
+
 function AppShell({ session, statusMessage, onLogout }) {
   const location = useLocation();
+  const { lang, setLang } = useLang();
+  const [collapsed, setCollapsed] = useState(false);
+
+  const currentLabel = navKeys.find((item) => item.to === location.pathname)
+    ? tr(navKeys.find((item) => item.to === location.pathname).key, lang)
+    : location.pathname === "/admin" ? "Admin" : "MindTrack";
 
   return (
     <div className="min-h-screen bg-canvas px-4 py-4 text-ink sm:px-6">
-      <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-[2rem] bg-sidebar p-5 text-white shadow-panel xl:sticky xl:top-4">
-          <div className="rounded-[1.6rem] bg-white/8 p-5">
-            <MindTrackLogo tone="dark" />
-            <h1 className="mt-4 font-display text-4xl leading-none">Your wellness space</h1>
-            <p className="mt-3 text-sm text-white/72">
-              Gentle daily check-ins and steady awareness for long-term wellbeing.
-            </p>
-          </div>
-
-          <div className="mt-6 flex items-center gap-3 rounded-[1.4rem] bg-white/8 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-sm font-bold text-ink">
-              {session.is_anonymous ? "AN" : session.email.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">
-                {session.is_anonymous ? "Anonymous Session" : session.email}
-              </p>
-              <p className="text-xs text-white/60">User #{session.user_id}</p>
-            </div>
-          </div>
-
-          <nav className="mt-6 grid gap-2">
-            {navItems.map((item) => (
-              <NavLink
-                className={({ isActive }) =>
-                  `rounded-[1.2rem] px-4 py-3 text-sm font-medium transition ${
-                    isActive
-                      ? "bg-white text-ink shadow-sm"
-                      : "text-white/72 hover:bg-white/10 hover:text-white"
-                  }`
-                }
-                key={item.to}
-                to={item.to}
+      <div className={`mx-auto grid max-w-7xl gap-6 ${collapsed ? "xl:grid-cols-[64px_minmax(0,1fr)]" : "xl:grid-cols-[280px_minmax(0,1fr)]"}`}>
+        <aside className={`h-fit rounded-2xl bg-sidebar text-white shadow-panel xl:sticky xl:top-4 ${collapsed ? "p-3" : "p-5"}`}>
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-3">
+              <button
+                className="flex items-center justify-center rounded-xl p-2 transition hover:bg-white/10"
+                onClick={() => setCollapsed(false)}
+                title="Expand sidebar"
+                type="button"
               >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+                <MindTrackMark />
+              </button>
+              <nav className="mt-2 flex flex-col items-center gap-1">
+                {navKeys.map((item) => (
+                  <NavLink
+                    className={({ isActive }) =>
+                      `flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition ${
+                        isActive ? "bg-white text-ink" : "text-white/70 hover:bg-white/10 hover:text-white"
+                      }`
+                    }
+                    key={item.to}
+                    title={tr(item.key, lang)}
+                    to={item.to}
+                  >
+                    {item.initial}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl bg-white/8 p-5">
+                <button
+                  className="w-full text-left transition hover:opacity-80"
+                  onClick={() => setCollapsed(true)}
+                  title="Collapse sidebar"
+                  type="button"
+                >
+                  <MindTrackLogo tone="dark" />
+                </button>
+                <h1 className="mt-4 font-display text-3xl leading-tight">{tr("sidebarTitle", lang)}</h1>
+                <p className="mt-2 text-sm text-white/72">{tr("sidebarSub", lang)}</p>
+              </div>
 
-          <div className="mt-6 rounded-[1.4rem] bg-white/8 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/62">Current page</p>
-            <p className="mt-2 text-lg font-semibold">
-              {currentSectionLabel(location.pathname)}
-            </p>
-          </div>
+              <div className="mt-5 flex items-center gap-3 rounded-xl bg-white/8 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-ink">
+                  {session.is_anonymous ? "AN" : session.email.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">
+                    {session.is_anonymous ? tr("anonSession", lang) : session.email}
+                  </p>
+                  <p className="text-xs text-white/60">#{session.user_id}</p>
+                </div>
+              </div>
 
-          <button
-            className="mt-6 w-full rounded-[1.2rem] border border-white/15 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            onClick={onLogout}
-            type="button"
-          >
-            Logout
-          </button>
+              <nav className="mt-5 grid gap-1.5">
+                {navKeys.map((item) => (
+                  <NavLink
+                    className={({ isActive }) =>
+                      `rounded-xl px-4 py-2.5 text-sm font-medium transition ${
+                        isActive ? "bg-white text-ink shadow-sm" : "text-white/72 hover:bg-white/10 hover:text-white"
+                      }`
+                    }
+                    key={item.to}
+                    to={item.to}
+                  >
+                    {tr(item.key, lang)}
+                  </NavLink>
+                ))}
+              </nav>
+
+              <div className="mt-5 rounded-xl bg-white/8 px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.3em] text-white/55">{tr("currentPage", lang)}</p>
+                <p className="mt-1.5 text-base font-semibold">{currentLabel}</p>
+              </div>
+
+              <div className="mt-5 flex items-center gap-2">
+                <div className="flex rounded-xl bg-white/8 p-1">
+                  <button
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${lang === "en" ? "bg-white text-ink" : "text-white/65 hover:text-white"}`}
+                    onClick={() => setLang("en")}
+                    type="button"
+                  >
+                    EN
+                  </button>
+                  <button
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${lang === "ru" ? "bg-white text-ink" : "text-white/65 hover:text-white"}`}
+                    onClick={() => setLang("ru")}
+                    type="button"
+                  >
+                    RU
+                  </button>
+                </div>
+                <button
+                  className="flex-1 rounded-xl border border-white/15 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                  onClick={onLogout}
+                  type="button"
+                >
+                  {tr("logout", lang)}
+                </button>
+              </div>
+            </>
+          )}
         </aside>
 
         <main className="space-y-6">
-          <header className="rounded-[2rem] bg-sand/96 p-5 shadow-panel backdrop-blur">
+          <header className="rounded-2xl bg-sand/96 p-5 shadow-panel backdrop-blur">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-ink/40">Wellness Dashboard</p>
-                <h2 className="mt-2 font-display text-4xl sm:text-5xl">Mental Health Monitoring</h2>
+                <p className="text-xs uppercase tracking-[0.35em] text-ink/40">{tr("headerEyebrow", lang)}</p>
+                <h2 className="mt-2 font-display text-4xl sm:text-5xl">{tr("headerTitle", lang)}</h2>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
                   className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:brightness-95"
                   to="/check-in"
                 >
-                  Daily Check-In
+                  {tr("btnCheckin", lang)}
                 </Link>
                 <Link
                   className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-ink/25"
                   to="/insights"
                 >
-                  View Insights
+                  {tr("btnInsights", lang)}
                 </Link>
               </div>
             </div>
             {statusMessage && (
-              <div className="mt-4 rounded-[1.4rem] border border-line bg-white/90 px-4 py-3 text-sm shadow-sm">
+              <div className="mt-4 rounded-xl border border-line bg-white/90 px-4 py-3 text-sm shadow-sm">
                 {statusMessage}
               </div>
             )}
@@ -531,6 +829,7 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, o
 }
 
 function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
+  const { lang } = useLang();
   const assessment = data?.latest_assessment;
   const score = normalizePercent(assessment?.risk_score);
   const questionnaireStatus = data?.questionnaire_status;
@@ -548,15 +847,12 @@ function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
         <div className="rounded-2xl border border-[#f5c6c6] bg-[#fff5f5] p-5 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#b03030]">Safety Notice</p>
-              <p className="mt-2 text-sm leading-6 text-ink/75">
-                Your current screening shows elevated risk signals. You don&apos;t need to face this alone.
-                Reaching out to someone you trust — a friend, counselor, or helpline — can make a real difference.
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#b03030]">{tr("safetyNotice", lang)}</p>
+              <p className="mt-2 text-sm leading-6 text-ink/75">{tr("safetyText", lang)}</p>
             </div>
             <div className="flex shrink-0 flex-col gap-2 text-right text-xs text-ink/50">
               <span>Crisis line (KZ): <strong className="text-ink">150</strong></span>
-              <span>WHO helpline: <strong className="text-ink">+7 771 454 9216</strong></span>
+              <span>Helpline: <strong className="text-ink">+7 771 454 9216</strong></span>
             </div>
           </div>
         </div>
@@ -564,118 +860,103 @@ function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Check-In Streak</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{tr("streakLabel", lang)}</p>
           <p className="mt-2 text-3xl font-semibold text-primary">{streak}</p>
-          <p className="mt-1 text-sm text-ink/55">{streak === 1 ? "day" : "days"} in a row</p>
+          <p className="mt-1 text-sm text-ink/55">{streak === 1 ? tr("dayInRow", lang) : tr("daysInRow", lang)}</p>
         </div>
         <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Weekly Consistency</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{tr("consistencyLabel", lang)}</p>
           <p className="mt-2 text-3xl font-semibold text-primary-soft">{consistency}%</p>
-          <p className="mt-1 text-sm text-ink/55">last 7 days</p>
+          <p className="mt-1 text-sm text-ink/55">{tr("lastSevenDays", lang)}</p>
         </div>
         {baseline && latestMood ? (
           <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">vs Your Baseline</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{tr("baselineLabel", lang)}</p>
             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
-              <BaselineDelta label="Mood" current={latestMood.mood} base={baseline.mood} />
-              <BaselineDelta label="Stress" current={latestMood.stress} base={baseline.stress} invert />
-              <BaselineDelta label="Sleep" current={latestMood.sleep} base={baseline.sleep} />
-              <BaselineDelta label="Energy" current={latestMood.energy} base={baseline.energy} />
+              <BaselineDelta label={tr("moodLabel", lang)} current={latestMood.mood} base={baseline.mood} />
+              <BaselineDelta label={tr("stressLabel", lang)} current={latestMood.stress} base={baseline.stress} invert />
+              <BaselineDelta label={tr("sleepLabel", lang)} current={latestMood.sleep} base={baseline.sleep} />
+              <BaselineDelta label={tr("energyLabel", lang)} current={latestMood.energy} base={baseline.energy} />
             </div>
           </div>
         ) : (
           <div className="rounded-xl bg-white px-5 py-4 shadow-panel">
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Personal Baseline</p>
-            <p className="mt-3 text-sm text-ink/50">Available after 2+ check-ins.</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{tr("personalBaseline", lang)}</p>
+            <p className="mt-3 text-sm text-ink/50">{tr("baselineEmpty", lang)}</p>
           </div>
         )}
       </div>
 
       {questionnaireStatus && (
-        <div className="rounded-[1.6rem] border border-line bg-white px-5 py-4 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Deeper screening</p>
+        <div className="rounded-xl border border-line bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("deeperScreening", lang)}</p>
           <div className="mt-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <p className="text-sm leading-6 text-ink/68">{questionnaireStatus.message}</p>
-            <span
-              className={`inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] ${
-                questionnaireStatus.due_now ? "bg-[#fde8e8] text-[#b03030]" : "bg-[#ddf0ec] text-[#2e7065]"
-              }`}
-            >
-              {questionnaireStatus.due_now ? "Recommended Now" : "Available Anytime"}
+            <span className={`inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] ${questionnaireStatus.due_now ? "bg-[#fde8e8] text-[#b03030]" : "bg-[#ddf0ec] text-[#2e7065]"}`}>
+              {questionnaireStatus.due_now ? tr("recNow", lang) : tr("availableAnytime", lang)}
             </span>
           </div>
         </div>
       )}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className={`rounded-[2rem] bg-gradient-to-br ${scoreTone(assessment?.risk_level)} p-6 text-white shadow-panel`}>
+        <section className={`rounded-2xl bg-gradient-to-br ${scoreTone(assessment?.risk_level)} p-6 text-white shadow-panel`}>
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/65">Current Screening Result</p>
-              <h3 className="mt-3 font-display text-5xl">{assessment?.risk_level || "NO DATA"}</h3>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-white/78">
-                Hybrid score based on daily signals, journal tone, recent trend detection, and the latest
-                available questionnaire if it is still valid.
-              </p>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/65">{tr("currentResult", lang)}</p>
+              <h3 className="mt-3 font-display text-5xl">{assessment?.risk_level || tr("noData", lang)}</h3>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-white/78">{tr("scoreDesc", lang)}</p>
             </div>
-            <button
-              className="rounded-full border border-white/18 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              onClick={onSeedDemo}
-              type="button"
-            >
-              Load Demo Data
+            <button className="rounded-full border border-white/18 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10" onClick={onSeedDemo} type="button">
+              {tr("loadDemo", lang)}
             </button>
           </div>
-
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <StatBlock label="Score" value={`${score}/100`} />
-            <StatBlock label="Trend" value={`${normalizePercent(assessment?.trend_score)}%`} />
-            <StatBlock label="Text Distress" value={`${normalizePercent(assessment?.text_score)}%`} />
+            <StatBlock label={tr("score", lang)} value={`${score}/100`} />
+            <StatBlock label={tr("trend", lang)} value={`${normalizePercent(assessment?.trend_score)}%`} />
+            <StatBlock label={tr("textDistress", lang)} value={`${normalizePercent(assessment?.text_score)}%`} />
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-white p-6 shadow-panel">
+        <section className="rounded-2xl bg-white p-6 shadow-panel">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Risk Ring</p>
-              <h3 className="mt-3 font-display text-3xl">Overall Risk Score</h3>
+              <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("riskRing", lang)}</p>
+              <h3 className="mt-3 font-display text-3xl">{tr("overallRisk", lang)}</h3>
             </div>
-            {pageLoading && <span className="text-sm text-ink/45">Refreshing...</span>}
+            {pageLoading && <span className="text-sm text-ink/45">{tr("refreshing", lang)}</span>}
           </div>
-
-          <div className="mt-6 flex flex-col items-center justify-center gap-4 rounded-[1.8rem] bg-canvas p-6">
+          <div className="mt-6 flex flex-col items-center justify-center gap-4 rounded-xl bg-canvas p-6">
             <MetricRing percent={score} level={assessment?.risk_level || "LOW"} />
             <p className={`text-lg font-semibold ${riskToneText(assessment?.risk_level)}`}>
-              {assessment?.alert_type ? "Alert active" : "Stable monitoring"}
+              {assessment?.alert_type ? tr("alertActive", lang) : tr("stableMonitoring", lang)}
             </p>
-            <p className="text-center text-sm text-ink/60">
-              Last updated {formatDate(assessment?.created_at)}
-            </p>
+            <p className="text-center text-sm text-ink/60">{tr("lastUpdated", lang)} {formatDate(assessment?.created_at)}</p>
           </div>
         </section>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <section className="space-y-6">
-          <Card title="Short Weekly Summary" eyebrow="Signals">
+          <Card title={tr("weekSummary", lang)} eyebrow={tr("signals", lang)}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <MiniMetric label="Average Mood" value={data?.summary?.avg_mood || 0} suffix="/10" />
-              <MiniMetric label="Average Stress" value={data?.summary?.avg_stress || 0} suffix="/10" />
-              <MiniMetric label="Average Sleep" value={data?.summary?.avg_sleep || 0} suffix="h" />
-              <MiniMetric label="Volatility Index" value={normalizePercent(data?.summary?.volatility_index) || 0} suffix="%" />
+              <MiniMetric label={tr("avgMood", lang)} value={data?.summary?.avg_mood || 0} suffix="/10" />
+              <MiniMetric label={tr("avgStress", lang)} value={data?.summary?.avg_stress || 0} suffix="/10" />
+              <MiniMetric label={tr("avgSleep", lang)} value={data?.summary?.avg_sleep || 0} suffix="h" />
+              <MiniMetric label="Volatility" value={normalizePercent(data?.summary?.volatility_index) || 0} suffix="%" />
             </div>
           </Card>
 
-          <Card title="Support Plan" eyebrow="AI Guidance">
+          <Card title={tr("supportPlan", lang)} eyebrow={tr("aiGuidance", lang)}>
             <ProfessionalGuidance guidance={guidance} />
           </Card>
         </section>
 
         <section className="space-y-6">
-          <Card title="Alerts" eyebrow="Early Warning">
+          <Card title={tr("alerts", lang)} eyebrow={tr("earlyWarning", lang)}>
             <div className="space-y-3">
               {(data?.alerts || []).length === 0 ? (
-                <EmptyState text="No active alerts yet. Alerts appear when elevated risk or a downward pattern is detected." />
+                <EmptyState text={tr("noAlerts", lang)} />
               ) : (
                 data.alerts.map((alert) => (
                   <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4" key={alert.id}>
@@ -692,10 +973,10 @@ function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
             </div>
           </Card>
 
-          <Card title="Recommendation queue" eyebrow="Support Plan">
+          <Card title={tr("recQueue", lang)} eyebrow={tr("supportPlan", lang)}>
             <div className="grid gap-3">
               {(data?.recommendations || []).length === 0 ? (
-                <EmptyState text="Recommendations appear after the first complete assessment." />
+                <EmptyState text={tr("recEmpty", lang)} />
               ) : (
                 data.recommendations.map((rec) => (
                   <div className="rounded-[1.4rem] bg-canvas px-4 py-4" key={rec.id}>
@@ -714,6 +995,7 @@ function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
 }
 
 function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
+  const { lang } = useLang();
   const [form, setForm] = useState({
     ...moodDefaults,
     phq9_answers: Array(9).fill(null),
@@ -743,7 +1025,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
       const missingIndex = screeningQuestions.findIndex((item) => form[item.source][item.index] === null);
       if (missingIndex >= 0) {
         setScreeningStep(missingIndex);
-        setValidationMessage(`Please answer statement ${missingIndex + 1} before submitting the deeper screening.`);
+        setValidationMessage(tr("validationMsg", lang).replace("{n}", missingIndex + 1));
         return;
       }
     }
@@ -754,19 +1036,19 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
-        <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Step 1</p>
-        <h3 className="mt-3 font-display text-4xl">Daily mood check-in</h3>
+        <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("step1", lang)}</p>
+        <h3 className="mt-3 font-display text-4xl">{tr("moodCheckinTitle", lang)}</h3>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <div className="grid gap-4">
             <SliderCard
               accent="bg-soft text-primary"
-              label="Mood"
+              label={tr("moodLabel", lang)}
               value={form.mood}
               onChange={(value) => setForm((current) => ({ ...current, mood: value }))}
             />
             <SliderCard
               accent="bg-soft text-primary-soft"
-              label="Energy"
+              label={tr("energyLabel", lang)}
               value={form.energy}
               onChange={(value) => setForm((current) => ({ ...current, energy: value }))}
             />
@@ -780,13 +1062,13 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
           <div className="grid gap-4">
             <SliderCard
               accent="bg-calm/55 text-primary"
-              label="Stress"
+              label={tr("stressLabel", lang)}
               value={form.stress}
               onChange={(value) => setForm((current) => ({ ...current, stress: value }))}
             />
             <div className="rounded-[1.7rem] bg-canvas p-5">
               <FormField
-                label="Sleep Hours"
+                label={tr("sleepLabel", lang)}
                 onChange={(value) => setForm((current) => ({ ...current, sleep: Number(value) }))}
                 placeholder="7"
                 step="0.5"
@@ -794,11 +1076,11 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
                 value={form.sleep}
               />
               <div className="mt-4">
-                <label className="mb-3 block text-sm font-semibold">Quick note</label>
+                <label className="mb-3 block text-sm font-semibold">{tr("quickNote", lang)}</label>
                 <textarea
                   className="min-h-[124px] w-full rounded-[1.1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
                   onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
-                  placeholder="Describe what stood out today..."
+                  placeholder={tr("notePlaceholder", lang)}
                   value={form.note}
                 />
               </div>
@@ -808,12 +1090,12 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
       </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
-        <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Step 2</p>
-        <h3 className="mt-3 font-display text-4xl">Deeper screening</h3>
+        <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("step2", lang)}</p>
+        <h3 className="mt-3 font-display text-4xl">{tr("deeperTitle", lang)}</h3>
         <div className="mt-4 rounded-[1.5rem] bg-gradient-to-r from-[#EAF2FF] to-[#EEF3F9] px-5 py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-semibold text-ink">Want a deeper check-in?</p>
+              <p className="text-sm font-semibold text-ink">{tr("wantDeeper", lang)}</p>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-ink/68">
                 {questionnaireStatus?.message ||
                   "Taking the deeper screening gives the system more context and can reveal hidden stress patterns, emotional strain, and early changes before they become obvious."}
@@ -829,13 +1111,13 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
               }}
               type="button"
             >
-              {form.includeQuestionnaire ? "Skip For Now" : "Take Deeper Screening"}
+              {form.includeQuestionnaire ? tr("skipNow", lang) : tr("takeDeeper", lang)}
             </button>
           </div>
         </div>
 
         <div className="mt-4 rounded-[1.5rem] bg-canvas px-5 py-4 text-sm leading-6 text-ink/68">
-          Use the 1 to 5 scale below, where 1 means "not like me today" and 5 means "very true for me lately".
+          {tr("scaleHint", lang)}
         </div>
 
         {form.includeQuestionnaire ? (
@@ -863,31 +1145,25 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
           </div>
         ) : (
           <div className="mt-6 rounded-[1.5rem] border border-line bg-white px-5 py-5">
-            <p className="text-sm font-semibold text-ink">Quick mode is active for today.</p>
-            <p className="mt-2 text-sm leading-6 text-ink/64">
-              You can still continue with the short daily check-in now, or unlock the deeper screening any time if
-              you want a more detailed interpretation of your current state.
-            </p>
+            <p className="text-sm font-semibold text-ink">{tr("quickModeActive", lang)}</p>
+            <p className="mt-2 text-sm leading-6 text-ink/64">{tr("quickModeDesc", lang)}</p>
           </div>
         )}
       </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
-        <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Step 3</p>
-        <h3 className="mt-3 font-display text-4xl">Journal reflection</h3>
+        <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("step3", lang)}</p>
+        <h3 className="mt-3 font-display text-4xl">{tr("journalTitle", lang)}</h3>
         <div className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[1.7rem] bg-gradient-to-br from-[#EAF2FF] to-[#E8F2EF] p-6">
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/45">Prompt</p>
-            <p className="mt-4 text-sm leading-7 text-ink/68">
-              Write freely about how you feel, what is causing pressure, whether you feel supported, and
-              whether sleep or energy changed this week.
-            </p>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/45">{tr("journalPrompt", lang)}</p>
+            <p className="mt-4 text-sm leading-7 text-ink/68">{tr("journalPromptText", lang)}</p>
           </div>
           <div className="rounded-[1.7rem] bg-canvas p-5">
             <textarea
               className="min-h-[220px] w-full rounded-[1.2rem] border border-line bg-white px-4 py-4 outline-none transition focus:border-primary"
               onChange={(event) => setForm((current) => ({ ...current, text: event.target.value }))}
-              placeholder="Example: I felt overwhelmed and exhausted this week. It was hard to sleep and my stress kept building before deadlines."
+              placeholder={tr("journalPlaceholder", lang)}
               value={form.text}
             />
             <button
@@ -895,7 +1171,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
               disabled={submitLoading}
               type="submit"
             >
-              {submitLoading ? "Calculating your assessment..." : "Submit & View Results"}
+              {submitLoading ? tr("submittingBtn", lang) : tr("submitBtn", lang)}
             </button>
           </div>
         </div>
@@ -905,6 +1181,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
 }
 
 function RiskResultPage({ data }) {
+  const { lang } = useLang();
   const assessment = data?.latest_assessment;
   const mood = data?.latest_mood;
   const questionnaire = data?.latest_questionnaire;
@@ -916,16 +1193,14 @@ function RiskResultPage({ data }) {
       <div className="rounded-[2rem] bg-white p-8 text-center shadow-panel">
         <div className="mx-auto flex max-w-2xl flex-col items-center">
           <MindTrackLogo />
-          <p className="mt-8 text-xs uppercase tracking-[0.35em] text-ink/45">Risk Result</p>
-          <h3 className="mt-3 font-display text-4xl">No assessment yet</h3>
-          <p className="mt-4 max-w-lg text-sm leading-6 text-ink/62">
-            Complete a check-in first so MindTrack can calculate a fresh risk result and build a support plan.
-          </p>
+          <p className="mt-8 text-xs uppercase tracking-[0.35em] text-ink/45">{tr("riskResult", lang)}</p>
+          <h3 className="mt-3 font-display text-4xl">{tr("noDataTitle", lang)}</h3>
+          <p className="mt-4 max-w-lg text-sm leading-6 text-ink/62">{tr("noDataDesc", lang)}</p>
           <Link
             className="mt-7 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:brightness-95"
             to="/check-in"
           >
-            Start Check-In
+            {tr("startCheckin", lang)}
           </Link>
         </div>
       </div>
@@ -936,11 +1211,8 @@ function RiskResultPage({ data }) {
     <div className="space-y-6">
     {assessment?.risk_level === "HIGH" && (
       <div className="rounded-2xl border border-[#f5c6c6] bg-[#fff5f5] p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#b03030]">Reach out — you don&apos;t have to manage this alone</p>
-        <p className="mt-2 text-sm leading-6 text-ink/70">
-          These results suggest elevated distress. Speaking with someone you trust — a counselor, doctor,
-          or crisis line — is a meaningful next step.
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#b03030]">{tr("reachOutTitle", lang)}</p>
+        <p className="mt-2 text-sm leading-6 text-ink/70">{tr("reachOutText", lang)}</p>
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-ink/55">
           <span>Crisis line (KZ): <strong className="text-ink">150</strong></span>
           <span>WHO: <strong className="text-ink">+7 771 454 9216</strong></span>
@@ -951,21 +1223,18 @@ function RiskResultPage({ data }) {
     <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
       <section className="space-y-6">
         <div className="rounded-2xl bg-white p-6 shadow-panel">
-          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Risk Result</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("riskResult", lang)}</p>
           <div className="mt-6 flex flex-col items-center gap-4 rounded-[1.8rem] bg-canvas p-6 text-center">
             <MetricRing percent={normalizePercent(assessment?.risk_score)} level={assessment?.risk_level || "LOW"} />
             <p className={`text-3xl font-semibold ${riskToneText(assessment?.risk_level)}`}>
-              {assessment?.risk_level || "NO DATA"}
+              {assessment?.risk_level || tr("noData", lang)}
             </p>
-            <p className="max-w-md text-sm leading-6 text-ink/64">
-              This score estimates current vulnerability and warning patterns. It should support awareness,
-              not replace a clinician's evaluation.
-            </p>
+            <p className="max-w-md text-sm leading-6 text-ink/64">{tr("riskScoreDesc", lang)}</p>
           </div>
         </div>
 
         <div className="rounded-[2rem] bg-white p-6 shadow-panel">
-          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Component Breakdown</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("componentBreakdown", lang)}</p>
           <div className="mt-5 space-y-4">
             <BreakdownBar label="Classifier" value={assessment?.classifier_score} />
             <BreakdownBar label="Questionnaire Severity" value={assessment?.questionnaire_score} />
@@ -976,14 +1245,14 @@ function RiskResultPage({ data }) {
       </section>
 
       <section className="space-y-6">
-        <Card title="Support Plan" eyebrow="AI Guidance">
+        <Card title={tr("supportPlan", lang)} eyebrow={tr("aiGuidance", lang)}>
           <ProfessionalGuidance guidance={guidance} />
         </Card>
 
-        <Card title="Explainable factors" eyebrow="Key Signals">
+        <Card title={tr("explainableFactors", lang)} eyebrow={tr("keySignals", lang)}>
           <div className="space-y-3">
             {(assessment?.explanations || []).length === 0 ? (
-              <EmptyState text="Run a complete check-in to generate explainable factors." />
+              <EmptyState text={tr("noExplain", lang)} />
             ) : (
               assessment.explanations.map((item) => (
                 <div className="rounded-[1.4rem] bg-canvas px-4 py-4 text-sm leading-6 text-ink/65" key={item}>
@@ -994,19 +1263,19 @@ function RiskResultPage({ data }) {
           </div>
         </Card>
 
-        <Card title="Latest inputs" eyebrow="Assessment Context">
+        <Card title={tr("latestInputs", lang)} eyebrow={tr("assessmentContext", lang)}>
           <div className="grid gap-4 md:grid-cols-2">
-            <MiniMetric label="Mood" value={mood?.mood || 0} suffix="/10" />
-            <MiniMetric label="Stress" value={mood?.stress || 0} suffix="/10" />
-            <MiniMetric label="Sleep" value={mood?.sleep || 0} suffix="h" />
-            <MiniMetric label="Energy" value={mood?.energy || 0} suffix="/10" />
-            <MiniMetric label="Mood Screen" value={questionnaire?.phq9_total || 0} suffix="/45" />
-            <MiniMetric label="Stress Screen" value={questionnaire?.gad7_total || 0} suffix="/35" />
+            <MiniMetric label={tr("moodLabel", lang)} value={mood?.mood || 0} suffix="/10" />
+            <MiniMetric label={tr("stressLabel", lang)} value={mood?.stress || 0} suffix="/10" />
+            <MiniMetric label={tr("sleepLabel", lang)} value={mood?.sleep || 0} suffix="h" />
+            <MiniMetric label={tr("energyLabel", lang)} value={mood?.energy || 0} suffix="/10" />
+            <MiniMetric label={tr("moodScreen", lang)} value={questionnaire?.phq9_total || 0} suffix="/45" />
+            <MiniMetric label={tr("stressScreen", lang)} value={questionnaire?.gad7_total || 0} suffix="/35" />
           </div>
           {journal?.text && (
             <div className="mt-5 rounded-[1.4rem] bg-canvas px-4 py-4 text-sm leading-6 text-ink/64">
               <p className="mb-2 text-xs uppercase tracking-[0.3em] text-ink/40">
-                Journal tone: {journal.sentiment_label}
+                {tr("journalTone", lang)} {journal.sentiment_label}
               </p>
               {journal.text}
             </div>
@@ -1019,6 +1288,7 @@ function RiskResultPage({ data }) {
 }
 
 function InsightsPage({ insights, history }) {
+  const { lang } = useLang();
   const historyItems = history?.items || [];
   const weekItems = historyItems.slice(0, 7);
   const streak = calcStreak(historyItems);
@@ -1034,27 +1304,27 @@ function InsightsPage({ insights, history }) {
     <div className="space-y-6">
       {weekItems.length >= 2 && (
         <div className="rounded-2xl bg-gradient-to-br from-sidebar to-primary p-6 text-white shadow-panel">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/65">Weekly Report</p>
-          <h3 className="mt-2 font-display text-3xl">7-Day Summary</h3>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/65">{tr("weeklyReport", lang)}</p>
+          <h3 className="mt-2 font-display text-3xl">{tr("sevenDaySummary", lang)}</h3>
           <div className="mt-5 grid gap-4 sm:grid-cols-4">
-            <StatBlock label="Avg Mood" value={`${avgMood}/10`} />
-            <StatBlock label="Avg Stress" value={`${avgStress}/10`} />
-            <StatBlock label="Avg Sleep" value={`${avgSleep}h`} />
-            <StatBlock label="Consistency" value={`${consistency}%`} />
+            <StatBlock label={tr("avgMood", lang)} value={`${avgMood}/10`} />
+            <StatBlock label={tr("avgStress", lang)} value={`${avgStress}/10`} />
+            <StatBlock label={tr("avgSleep", lang)} value={`${avgSleep}h`} />
+            <StatBlock label={tr("consistency", lang)} value={`${consistency}%`} />
           </div>
           {(bestDay || worstDay) && (
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {bestDay && (
                 <div className="rounded-xl bg-white/10 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.25em] text-white/62">Best day</p>
-                  <p className="mt-1 text-sm font-semibold">Mood {bestDay.mood}/10</p>
+                  <p className="text-xs uppercase tracking-[0.25em] text-white/62">{tr("bestDay", lang)}</p>
+                  <p className="mt-1 text-sm font-semibold">{tr("moodLabel", lang)} {bestDay.mood}/10</p>
                   <p className="text-xs text-white/55">{formatDate(bestDay.created_at)}</p>
                 </div>
               )}
               {worstDay && worstDay !== bestDay && (
                 <div className="rounded-xl bg-white/10 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.25em] text-white/62">Hardest day</p>
-                  <p className="mt-1 text-sm font-semibold">Mood {worstDay.mood}/10</p>
+                  <p className="text-xs uppercase tracking-[0.25em] text-white/62">{tr("hardestDay", lang)}</p>
+                  <p className="mt-1 text-sm font-semibold">{tr("moodLabel", lang)} {worstDay.mood}/10</p>
                   <p className="text-xs text-white/55">{formatDate(worstDay.created_at)}</p>
                 </div>
               )}
@@ -1062,72 +1332,70 @@ function InsightsPage({ insights, history }) {
           )}
           {streak > 0 && (
             <p className="mt-4 text-sm text-white/72">
-              {streak}-day check-in streak — keep the habit going.
+              {streak} {tr("streakMsg", lang)}
             </p>
           )}
         </div>
       )}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card title="Weekly trend" eyebrow="Insights">
+        <Card title={tr("weeklyTrend", lang)} eyebrow={tr("insightsEyebrow", lang)}>
           <TrendChart points={insights?.trend_points || []} />
         </Card>
 
-        <Card title="Pattern scan" eyebrow="Deviation Detection">
+        <Card title={tr("patternScan", lang)} eyebrow={tr("deviationDetection", lang)}>
           <div className="space-y-4">
-            <MiniMetric label="Trend Delta" value={insights?.summary?.trend_delta || 0} suffix="" />
-            <MiniMetric label="Decline Streak" value={insights?.summary?.decline_streak || 0} suffix=" days" />
+            <MiniMetric label={tr("trendDelta", lang)} value={insights?.summary?.trend_delta || 0} suffix="" />
+            <MiniMetric label={tr("declineStreak", lang)} value={insights?.summary?.decline_streak || 0} suffix=" days" />
             <MiniMetric
-              label="Deviation Flag"
-              value={insights?.deviation_detected ? "Detected" : "Stable"}
+              label={tr("deviationFlag", lang)}
+              value={insights?.deviation_detected ? tr("detected", lang) : tr("stable", lang)}
               suffix=""
             />
             {baseline && (
               <div className="grid grid-cols-2 gap-3">
-                <MiniMetric label="Baseline Mood" value={baseline.mood} suffix="/10" />
-                <MiniMetric label="Baseline Stress" value={baseline.stress} suffix="/10" />
-                <MiniMetric label="Baseline Sleep" value={baseline.sleep} suffix="h" />
-                <MiniMetric label="Baseline Energy" value={baseline.energy} suffix="/10" />
+                <MiniMetric label={tr("baselineMood", lang)} value={baseline.mood} suffix="/10" />
+                <MiniMetric label={tr("baselineStress", lang)} value={baseline.stress} suffix="/10" />
+                <MiniMetric label={tr("baselineSleep", lang)} value={baseline.sleep} suffix="h" />
+                <MiniMetric label={tr("baselineEnergy", lang)} value={baseline.energy} suffix="/10" />
               </div>
             )}
             <div className="rounded-xl bg-canvas px-4 py-4 text-sm leading-6 text-ink/65">
-              {insights?.deviation_detected
-                ? "The short-term pattern deviates from your recent baseline and may need closer attention."
-                : "No significant downward deviation in the recent pattern."}
+              {insights?.deviation_detected ? tr("deviationYes", lang) : tr("deviationNo", lang)}
             </div>
           </div>
         </Card>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card title="Latest journal signal" eyebrow="NLP Layer">
+        <Card title={tr("journalSignal", lang)} eyebrow={tr("nlpLayer", lang)}>
           {insights?.journal ? (
             <div className="space-y-4">
               <div className="flex gap-3">
-                <MiniMetric label="Sentiment" value={insights.journal.sentiment_label} suffix="" />
-                <MiniMetric label="Distress" value={normalizePercent(insights.journal.distress_score)} suffix="%" />
+                <MiniMetric label={tr("sentiment", lang)} value={insights.journal.sentiment_label} suffix="" />
+                <MiniMetric label={tr("distress", lang)} value={normalizePercent(insights.journal.distress_score)} suffix="%" />
               </div>
               <div className="rounded-xl bg-canvas px-4 py-4 text-sm leading-6 text-ink/65">
                 {insights.journal.text}
               </div>
             </div>
           ) : (
-            <EmptyState text="Journal-based insight appears after the first reflection." />
+            <EmptyState text={tr("journalInsightEmpty", lang)} />
           )}
         </Card>
 
-        <Card title="Recent timeline" eyebrow="History Preview">
+        <Card title={tr("recentTimeline", lang)} eyebrow={tr("historyPreview", lang)}>
           <div className="space-y-3">
             {historyItems.slice(0, 6).map((item) => (
               <div className="rounded-xl bg-canvas px-4 py-4" key={item.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold">{formatDate(item.created_at)}</p>
                   <p className={`text-xs font-bold uppercase tracking-[0.25em] ${riskToneText(item.risk_level)}`}>
-                    {item.risk_level || "Pending"}
+                    {item.risk_level || tr("pending", lang)}
                   </p>
                 </div>
                 <p className="mt-2 text-sm text-ink/64">
-                  Mood {item.mood}, Stress {item.stress}, Sleep {item.sleep}h, Energy {item.energy}
+                  {tr("moodLabel", lang)} {item.mood}, {tr("stressLabel", lang)} {item.stress}, {tr("sleepLabel", lang)} {item.sleep}h, {tr("energyLabel", lang)} {item.energy}
                 </p>
               </div>
             ))}
@@ -1139,27 +1407,28 @@ function InsightsPage({ insights, history }) {
 }
 
 function HistoryPage({ history }) {
+  const { lang } = useLang();
   return (
-    <Card title="Full history" eyebrow="Timeline">
+    <Card title={tr("fullHistory", lang)} eyebrow={tr("timeline", lang)}>
       <div className="space-y-3">
         {(history?.items || []).length === 0 ? (
-          <EmptyState text="No history yet. Complete your first screening to create a timeline." />
+          <EmptyState text={tr("noHistory", lang)} />
         ) : (
           history.items.map((item) => (
             <div className="rounded-[1.5rem] bg-canvas px-4 py-4" key={item.id}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-semibold">{formatDate(item.created_at)}</p>
                 <p className={`text-xs font-bold uppercase tracking-[0.25em] ${riskToneText(item.risk_level)}`}>
-                  {item.risk_level || "Pending"}
+                  {item.risk_level || tr("pending", lang)}
                 </p>
               </div>
               <div className="mt-3 grid gap-3 sm:grid-cols-4">
-                <MiniMetric label="Mood" value={item.mood} suffix="/10" />
-                <MiniMetric label="Stress" value={item.stress} suffix="/10" />
-                <MiniMetric label="Sleep" value={item.sleep} suffix="h" />
-                <MiniMetric label="Energy" value={item.energy} suffix="/10" />
+                <MiniMetric label={tr("moodLabel", lang)} value={item.mood} suffix="/10" />
+                <MiniMetric label={tr("stressLabel", lang)} value={item.stress} suffix="/10" />
+                <MiniMetric label={tr("sleepLabel", lang)} value={item.sleep} suffix="h" />
+                <MiniMetric label={tr("energyLabel", lang)} value={item.energy} suffix="/10" />
               </div>
-              <p className="mt-4 text-sm leading-6 text-ink/64">{item.note || "No note added."}</p>
+              <p className="mt-4 text-sm leading-6 text-ink/64">{item.note || tr("noNote", lang)}</p>
             </div>
           ))
         )}
@@ -1169,6 +1438,7 @@ function HistoryPage({ history }) {
 }
 
 function WellnessPage() {
+  const { lang } = useLang();
   const [remaining, setRemaining] = useState(BREATHING_SESSION_SECONDS);
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
@@ -1216,13 +1486,13 @@ function WellnessPage() {
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="space-y-6">
         <div className="rounded-[2rem] bg-gradient-to-br from-[#6fae8d] to-[#4E7FA8] p-6 text-white shadow-panel">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/65">Breathing Exercise</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/65">{tr("breathingExercise", lang)}</p>
           <div className="mt-6 flex flex-col items-center gap-5">
             <div className={`breathing-orb ${running ? phase.className : ""}`}>
               <div className="breathing-orb__inner">
                 <p className="text-sm uppercase tracking-[0.25em] text-white/65">{remaining}s</p>
-                <p className="mt-1 text-2xl font-semibold">{remaining === 0 ? "Complete" : phase.label}</p>
-                <p className="mt-2 text-center text-xs text-white/62">{remaining === 0 ? "Nice work" : phase.instruction}</p>
+                <p className="mt-1 text-2xl font-semibold">{remaining === 0 ? tr("complete", lang) : phase.label}</p>
+                <p className="mt-2 text-center text-xs text-white/62">{remaining === 0 ? tr("niceWork", lang) : phase.instruction}</p>
               </div>
             </div>
             <div className="w-full max-w-sm">
@@ -1235,21 +1505,21 @@ function WellnessPage() {
                   onClick={toggleBreathing}
                   type="button"
                 >
-                  {running ? "Pause" : remaining === 0 ? "Restart" : "Start"}
+                  {running ? tr("pause", lang) : remaining === 0 ? tr("restart", lang) : tr("start", lang)}
                 </button>
                 <button
                   className="rounded-full border border-white/25 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                   onClick={resetBreathing}
                   type="button"
                 >
-                  Reset
+                  {tr("reset", lang)}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <Card title="Quick recovery tools" eyebrow="Mindful Support">
+        <Card title={tr("quickRecovery", lang)} eyebrow={tr("mindfulSupport", lang)}>
           <div className="grid gap-4 md:grid-cols-3">
             <FeatureCard title="Body Scan" text="5-minute reset to reduce overload and muscle tension." />
             <FeatureCard title="Grounding" text="A 5-4-3-2-1 exercise for when anxiety spikes." />
@@ -1259,11 +1529,11 @@ function WellnessPage() {
       </section>
 
       <section className="space-y-6">
-        <Card title="Soundscapes" eyebrow="Recovery Audio">
+        <Card title={tr("soundscapes", lang)} eyebrow={tr("recoveryAudio", lang)}>
           <SoundscapePlayer />
         </Card>
 
-        <Card title="Reset routine" eyebrow="Aftercare">
+        <Card title={tr("resetRoutine", lang)} eyebrow={tr("aftercare", lang)}>
           <div className="grid gap-3">
             <FeatureCard title="One minute" text="Use the breathing timer before submitting a stressful check-in." />
             <FeatureCard title="Three minutes" text="Add a soundscape and write one sentence about the strongest trigger." />
@@ -1276,12 +1546,12 @@ function WellnessPage() {
 }
 
 function SettingsPage({ session, onFeedback }) {
+  const { lang, setLang } = useLang();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(true);
   const [reminderTime, setReminderTime] = useState("20:30");
   const [checkInGoal, setCheckInGoal] = useState("5");
-  const [language, setLanguage] = useState("English");
   const [feedback, setFeedback] = useState({ category: "Performance", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -1302,30 +1572,30 @@ function SettingsPage({ session, onFeedback }) {
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="space-y-6">
-        <Card title="Profile summary" eyebrow="Account">
+        <Card title={tr("profileSummary", lang)} eyebrow={tr("account", lang)}>
           <div className="rounded-[1.5rem] bg-canvas p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold">{session.is_anonymous ? "Anonymous Session" : session.email}</p>
+                <p className="text-sm font-semibold">{session.is_anonymous ? tr("anonSession", lang) : session.email}</p>
                 <p className="mt-1 text-sm text-ink/55">User #{session.user_id}</p>
               </div>
               <span className="w-fit rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-                {session.is_anonymous ? "Private mode" : "Signed in"}
+                {session.is_anonymous ? tr("privateMode", lang) : tr("signedIn", lang)}
               </span>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <MiniMetric label="Goal" value={checkInGoal} suffix="/week" />
-              <MiniMetric label="Reminder" value={reminderTime} suffix="" />
-              <MiniMetric label="Language" value={language} suffix="" />
+              <MiniMetric label={tr("goal", lang)} value={checkInGoal} suffix="/week" />
+              <MiniMetric label={tr("reminder", lang)} value={reminderTime} suffix="" />
+              <MiniMetric label={tr("language", lang)} value={lang === "ru" ? "RU" : "EN"} suffix="" />
             </div>
           </div>
         </Card>
 
-        <Card title="Notification settings" eyebrow="Preferences">
+        <Card title={tr("notifSettings", lang)} eyebrow={tr("preferences", lang)}>
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="rounded-[1.4rem] bg-canvas px-4 py-4">
-                <span className="block text-sm font-semibold">Reminder time</span>
+                <span className="block text-sm font-semibold">{tr("reminderTime", lang)}</span>
                 <input
                   className="mt-3 w-full rounded-[1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
                   onChange={(event) => setReminderTime(event.target.value)}
@@ -1334,7 +1604,7 @@ function SettingsPage({ session, onFeedback }) {
                 />
               </label>
               <label className="rounded-[1.4rem] bg-canvas px-4 py-4">
-                <span className="block text-sm font-semibold">Weekly check-in goal</span>
+                <span className="block text-sm font-semibold">{tr("weeklyGoal", lang)}</span>
                 <select
                   className="mt-3 w-full rounded-[1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
                   onChange={(event) => setCheckInGoal(event.target.value)}
@@ -1347,46 +1617,53 @@ function SettingsPage({ session, onFeedback }) {
               </label>
             </div>
             <ToggleRow
-              description="Show reminders for the daily check-in."
+              description={tr("dailyRemindersDesc", lang)}
               enabled={notificationsEnabled}
-              label="Daily reminders"
+              label={tr("dailyReminders", lang)}
               onToggle={() => setNotificationsEnabled((current) => !current)}
             />
             <ToggleRow
-              description="Enable ambient audio in wellness sessions."
+              description={tr("soundSupportDesc", lang)}
               enabled={soundEnabled}
-              label="Sound support"
+              label={tr("soundSupport", lang)}
               onToggle={() => setSoundEnabled((current) => !current)}
             />
           </div>
         </Card>
 
-        <Card title="Privacy and localization" eyebrow="Personalization">
+        <Card title={tr("privacyLocale", lang)} eyebrow={tr("personalization", lang)}>
           <div className="space-y-4">
             <ToggleRow
-              description="Hide sensitive notes in shared presentation moments."
+              description={tr("privacyScreenDesc", lang)}
               enabled={privacyMode}
-              label="Privacy screen"
+              label={tr("privacyScreen", lang)}
               onToggle={() => setPrivacyMode((current) => !current)}
             />
             <label className="block rounded-[1.4rem] bg-canvas px-4 py-4">
-              <span className="block text-sm font-semibold">Interface language</span>
-              <select
-                className="mt-3 w-full rounded-[1rem] border border-line bg-white px-4 py-3 outline-none transition focus:border-primary"
-                onChange={(event) => setLanguage(event.target.value)}
-                value={language}
-              >
-                <option>English</option>
-                <option>Russian</option>
-                <option>Kazakh</option>
-              </select>
+              <span className="block text-sm font-semibold">{tr("interfaceLang", lang)}</span>
+              <div className="mt-3 flex gap-2">
+                <button
+                  className={`flex-1 rounded-[1rem] border py-3 text-sm font-semibold transition ${lang === "en" ? "border-primary bg-primary text-white" : "border-line bg-white text-ink hover:border-primary/40"}`}
+                  onClick={() => setLang("en")}
+                  type="button"
+                >
+                  English
+                </button>
+                <button
+                  className={`flex-1 rounded-[1rem] border py-3 text-sm font-semibold transition ${lang === "ru" ? "border-primary bg-primary text-white" : "border-line bg-white text-ink hover:border-primary/40"}`}
+                  onClick={() => setLang("ru")}
+                  type="button"
+                >
+                  Русский
+                </button>
+              </div>
             </label>
           </div>
         </Card>
       </section>
 
       <section className="space-y-6">
-        <Card title="Feedback" eyebrow="Help Improve">
+        <Card title={tr("feedbackTitle", lang)} eyebrow={tr("helpImprove", lang)}>
           <form className="space-y-4" onSubmit={handleFeedbackSubmit}>
             <select
               className="w-full rounded-[1.2rem] border border-line bg-canvas px-4 py-3 outline-none"
@@ -1401,7 +1678,7 @@ function SettingsPage({ session, onFeedback }) {
             <textarea
               className="min-h-[220px] w-full rounded-[1.2rem] border border-line bg-canvas px-4 py-4 outline-none"
               onChange={(event) => setFeedback((current) => ({ ...current, message: event.target.value }))}
-              placeholder="Share what could be improved in the platform."
+              placeholder={tr("feedbackPlaceholder", lang)}
               value={feedback.message}
             />
             <button
@@ -1409,12 +1686,12 @@ function SettingsPage({ session, onFeedback }) {
               disabled={submitting}
               type="submit"
             >
-              {submitting ? "Sending..." : "Submit Feedback"}
+              {submitting ? tr("sending", lang) : tr("submitFeedback", lang)}
             </button>
           </form>
         </Card>
 
-        <Card title="Connected signals" eyebrow="Ecosystem">
+        <Card title={tr("connectedSignals", lang)} eyebrow={tr("ecosystem", lang)}>
           <div className="grid gap-4 md:grid-cols-2">
             <DeviceCard device="Smart Watch" status="Connect" />
             <DeviceCard device="Sleep Patch" status="Preview" />
@@ -1423,11 +1700,9 @@ function SettingsPage({ session, onFeedback }) {
           </div>
         </Card>
 
-        <Card title="Safety note" eyebrow="Clinical Boundary">
+        <Card title={tr("safetyNoteTitle", lang)} eyebrow={tr("clinicalBoundary", lang)}>
           <div className="rounded-[1.4rem] bg-[#EAF2FF] px-4 py-4 text-sm leading-7 text-ink/68">
-            The platform is designed for risk screening and early warning support. It should not be used as a
-            standalone diagnosis. If distress feels urgent or overwhelming, a licensed professional or local
-            emergency support should be contacted directly.
+            {tr("safetyNoteText", lang)}
           </div>
         </Card>
       </section>
@@ -1715,6 +1990,17 @@ function AdminStandalonePage(props) {
   );
 }
 
+function MindTrackMark() {
+  return (
+    <svg aria-hidden="true" className="h-8 w-8" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" fill="rgba(255,255,255,0.18)" r="21" />
+      <path d="M12 27 C17 18, 25 18, 30 27 C33 32, 39 30, 41 23" fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeWidth="3.4" />
+      <path d="M22 29 C21 20, 27 14, 35 14 C35 22, 30 29, 22 29Z" fill="rgba(255,255,255,0.72)" />
+      <path d="M18 29 L22 29 L25 22 L29 34 L33 26 L37 26" fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" />
+    </svg>
+  );
+}
+
 function MindTrackLogo({ tone = "light" }) {
   const textClass = tone === "dark" || tone === "hero" ? "text-white" : "text-ink";
   const subTextClass = tone === "dark" || tone === "hero" ? "text-white/58" : "text-ink/45";
@@ -1904,6 +2190,7 @@ function AdminMiniTrend({ history, assessments }) {
 }
 
 function MetricRing({ percent, level }) {
+  const { lang } = useLang();
   const safePercent = Math.max(0, Math.min(100, percent));
   const ringColor =
     level === "HIGH" ? "#c75454" : level === "MEDIUM" ? "#C9953A" : "#4E7FA8";
@@ -1917,7 +2204,7 @@ function MetricRing({ percent, level }) {
     >
       <div className="metric-ring__inner">
         <p className="text-5xl font-semibold">{safePercent}</p>
-        <p className="mt-1 text-sm uppercase tracking-[0.3em] text-ink/45">Risk Score</p>
+        <p className="mt-1 text-sm uppercase tracking-[0.3em] text-ink/45">{tr("riskScore", lang)}</p>
       </div>
     </div>
   );
@@ -1958,12 +2245,13 @@ function SliderCard({ label, value, accent, onChange }) {
 }
 
 function FocusSelector({ options, value, onChange }) {
+  const { lang } = useLang();
   return (
     <div className="rounded-xl bg-canvas p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold">Today's focus</p>
-          <p className="mt-1 text-sm text-ink/58">Pick the main context for this check-in.</p>
+          <p className="text-sm font-semibold">{tr("todayFocus", lang)}</p>
+          <p className="mt-1 text-sm text-ink/58">{tr("focusSub", lang)}</p>
         </div>
         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary">{value}</span>
       </div>
@@ -1999,6 +2287,7 @@ function QuestionnaireFlow({
   total,
   validationMessage,
 }) {
+  const { lang } = useLang();
   return (
     <div className="overflow-hidden rounded-[1.7rem] border border-line bg-[#f8fbfd]">
       <div className="flex items-center justify-between gap-4 border-b border-line bg-white px-5 py-4">
@@ -2026,7 +2315,7 @@ function QuestionnaireFlow({
       <div className="px-5 py-8 sm:px-8">
         <p className="text-center text-xs uppercase tracking-[0.35em] text-ink/42">{activeQuestion.group}</p>
         <h4 className="mx-auto mt-4 max-w-3xl text-center font-display text-3xl leading-tight text-ink sm:text-4xl">
-          Choose how accurately each statement reflects you.
+          {tr("questionnaireInstructions", lang)}
         </h4>
         <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-7 text-ink/62">
           {activeQuestion.question}
@@ -2061,7 +2350,7 @@ function QuestionnaireFlow({
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-ink/55">
-            Answered {answeredCount} of {total}. Tap the same circle again to clear it.
+            {tr("answered", lang)} {answeredCount} {tr("of", lang)} {total}. {tr("tapSame", lang)}
           </p>
           <button
             className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
@@ -2069,7 +2358,7 @@ function QuestionnaireFlow({
             onClick={onNext}
             type="button"
           >
-            Next Statement
+            {tr("nextStatement", lang)}
           </button>
         </div>
       </div>
@@ -2095,6 +2384,7 @@ function EmptyState({ text }) {
 }
 
 function ProfessionalGuidance({ guidance }) {
+  const { lang } = useLang();
   const [openSections, setOpenSections] = useState({
     summary: true,
     drivers: false,
@@ -2104,7 +2394,7 @@ function ProfessionalGuidance({ guidance }) {
   });
 
   if (!guidance) {
-    return <EmptyState text="Complete a full assessment to generate a structured professional guidance report." />;
+    return <EmptyState text={tr("guidanceEmpty", lang)} />;
   }
 
   function toggleSection(section) {
@@ -2124,7 +2414,7 @@ function ProfessionalGuidance({ guidance }) {
       <AccordionSection
         isOpen={openSections.drivers}
         onToggle={() => toggleSection("drivers")}
-        title="Key Risk Drivers"
+        title={tr("guidanceDrivers", lang)}
       >
         <GuidanceList items={guidance.risk_drivers} />
       </AccordionSection>
@@ -2132,7 +2422,7 @@ function ProfessionalGuidance({ guidance }) {
         accent="bg-soft/60"
         isOpen={openSections.today}
         onToggle={() => toggleSection("today")}
-        title="What To Do Today"
+        title={tr("guidanceToday", lang)}
       >
         <GuidanceList items={guidance.today_actions} />
       </AccordionSection>
@@ -2140,7 +2430,7 @@ function ProfessionalGuidance({ guidance }) {
         accent="bg-[#f4eee6]"
         isOpen={openSections.monitor}
         onToggle={() => toggleSection("monitor")}
-        title="What To Monitor Next"
+        title={tr("guidanceMonitor", lang)}
       >
         <GuidanceList items={guidance.follow_up_actions} />
       </AccordionSection>
@@ -2149,7 +2439,7 @@ function ProfessionalGuidance({ guidance }) {
           accent="bg-[#EAF2FF]"
           isOpen={openSections.safety}
           onToggle={() => toggleSection("safety")}
-          title="When To Seek Help"
+          title={tr("guidanceSafety", lang)}
         >
           <p className="text-sm leading-6 text-ink/68">{guidance.escalation_note}</p>
         </AccordionSection>
@@ -2177,8 +2467,9 @@ function AccordionSection({ accent = "bg-canvas", children, isOpen, onToggle, ti
 }
 
 function GuidanceList({ items }) {
+  const { lang } = useLang();
   if (!items?.length) {
-    return <p className="text-sm leading-6 text-ink/58">No specific signal is available yet.</p>;
+    return <p className="text-sm leading-6 text-ink/58">{tr("noSignal", lang)}</p>;
   }
 
   return (
@@ -2256,6 +2547,7 @@ function TrendChart({ points }) {
 }
 
 function SoundscapePlayer() {
+  const { lang } = useLang();
   const [activeTrack, setActiveTrack] = useState(soundscapes[0].id);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.45);
@@ -2359,7 +2651,7 @@ function SoundscapePlayer() {
       <div className="rounded-[1.6rem] bg-canvas p-5">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">Now selected</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/42">{tr("nowSelected", lang)}</p>
             <h4 className="mt-2 text-2xl font-semibold">{active.title}</h4>
             <p className="mt-2 text-sm text-ink/62">{active.subtitle}</p>
           </div>
@@ -2377,10 +2669,10 @@ function SoundscapePlayer() {
             onClick={togglePlayback}
             type="button"
           >
-            {playing ? "Pause Music" : "Play Music"}
+            {playing ? tr("pauseMusic", lang) : tr("playMusic", lang)}
           </button>
           <label className="flex flex-1 items-center gap-3 text-sm font-semibold text-ink/62">
-            Volume
+            {tr("volume", lang)}
             <input
               className="range-thumb h-2 flex-1 cursor-pointer appearance-none rounded-full bg-white"
               max="1"
@@ -2567,6 +2859,7 @@ function AppRoutes({
 
 export default function App() {
   const navigate = useNavigate();
+  const [lang, setLang] = useState(() => localStorage.getItem("mindtrack-lang") || "en");
   const [session, setSession] = useState(() => getStoredSession());
   const [adminSession, setAdminSession] = useState(() => getStoredAdminSession());
   const [authMode, setAuthMode] = useState("login");
@@ -2842,35 +3135,42 @@ export default function App() {
     navigate("/");
   }
 
+  function handleLangChange(newLang) {
+    setLang(newLang);
+    localStorage.setItem("mindtrack-lang", newLang);
+  }
+
   return (
-    <AppRoutes
-      adminDetail={adminDetail}
-      adminAuthenticated={Boolean(adminSession?.admin_token)}
-      adminForm={adminForm}
-      adminLoading={adminLoading}
-      adminOverview={adminOverview}
-      authForm={authForm}
-      authLoading={authLoading}
-      authMode={authMode}
-      dashboardData={dashboardData}
-      historyData={historyData}
-      insightsData={insightsData}
-      onAnonymous={handleAnonymousMode}
-      onAuthSubmit={handleAuthSubmit}
-      onCheckInSubmit={handleCheckInSubmit}
-      onFeedback={handleFeedback}
-      onLogout={handleLogout}
-      onAdminFormChange={setAdminForm}
-      onAdminLogin={handleAdminLogin}
-      onSeedDemo={handleSeedDemo}
-      onSelectAdminUser={handleSelectAdminUser}
-      pageLoading={pageLoading}
-      session={session}
-      setAuthForm={setAuthForm}
-      setAuthMode={setAuthMode}
-      statusMessage={statusMessage}
-      submitLoading={submitLoading}
-    />
+    <LangContext.Provider value={{ lang, setLang: handleLangChange }}>
+      <AppRoutes
+        adminDetail={adminDetail}
+        adminAuthenticated={Boolean(adminSession?.admin_token)}
+        adminForm={adminForm}
+        adminLoading={adminLoading}
+        adminOverview={adminOverview}
+        authForm={authForm}
+        authLoading={authLoading}
+        authMode={authMode}
+        dashboardData={dashboardData}
+        historyData={historyData}
+        insightsData={insightsData}
+        onAnonymous={handleAnonymousMode}
+        onAuthSubmit={handleAuthSubmit}
+        onCheckInSubmit={handleCheckInSubmit}
+        onFeedback={handleFeedback}
+        onLogout={handleLogout}
+        onAdminFormChange={setAdminForm}
+        onAdminLogin={handleAdminLogin}
+        onSeedDemo={handleSeedDemo}
+        onSelectAdminUser={handleSelectAdminUser}
+        pageLoading={pageLoading}
+        session={session}
+        setAuthForm={setAuthForm}
+        setAuthMode={setAuthMode}
+        statusMessage={statusMessage}
+        submitLoading={submitLoading}
+      />
+    </LangContext.Provider>
   );
 }
 
