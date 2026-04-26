@@ -50,10 +50,18 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 220px;
-  height: 220px;
-  padding: 16px;
+  width: 180px;
+  height: 180px;
+  padding: 14px;
   border-radius: 9999px;
+}
+
+@media (min-width: 640px) {
+  .metric-ring {
+    width: 220px;
+    height: 220px;
+    padding: 16px;
+  }
 }
 
 .metric-ring__inner {
@@ -69,13 +77,20 @@ select {
 
 .breathing-orb {
   display: flex;
-  height: 250px;
-  width: 250px;
+  height: 200px;
+  width: 200px;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.25);
   transition: transform 1s ease, box-shadow 1s ease;
+}
+
+@media (min-width: 640px) {
+  .breathing-orb {
+    height: 250px;
+    width: 250px;
+  }
 }
 
 .breathing-orb--inhale {
@@ -95,13 +110,20 @@ select {
 
 .breathing-orb__inner {
   display: flex;
-  width: 170px;
-  height: 170px;
+  width: 136px;
+  height: 136px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
   background: rgba(52, 64, 85, 0.14);
+}
+
+@media (min-width: 640px) {
+  .breathing-orb__inner {
+    width: 170px;
+    height: 170px;
+  }
 }
 
 .sound-bars {

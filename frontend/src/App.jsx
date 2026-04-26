@@ -536,14 +536,55 @@ function severityBadge(level) {
 }
 
 const navKeys = [
-  { to: "/dashboard", key: "navDashboard", initial: "D" },
-  { to: "/check-in", key: "navCheckin", initial: "C" },
-  { to: "/risk-result", key: "navRisk", initial: "R" },
-  { to: "/insights", key: "navInsights", initial: "I" },
-  { to: "/history", key: "navHistory", initial: "H" },
-  { to: "/wellness", key: "navWellness", initial: "W" },
-  { to: "/settings", key: "navSettings", initial: "S" },
+  { to: "/dashboard", key: "navDashboard", initial: "D", icon: "home", mobileLabel: { en: "Home", ru: "Главная" } },
+  { to: "/check-in", key: "navCheckin", initial: "C", icon: "checkin", mobileLabel: { en: "Check-In", ru: "Чек-ин" } },
+  { to: "/risk-result", key: "navRisk", initial: "R", icon: "risk", mobileLabel: { en: "Risk", ru: "Риск" } },
+  { to: "/insights", key: "navInsights", initial: "I", icon: "insights", mobileLabel: { en: "Insights", ru: "Графики" } },
+  { to: "/history", key: "navHistory", initial: "H", icon: "history", mobileLabel: { en: "History", ru: "История" } },
+  { to: "/wellness", key: "navWellness", initial: "W", icon: "wellness", mobileLabel: { en: "Wellness", ru: "Здоровье" } },
+  { to: "/settings", key: "navSettings", initial: "S", icon: "settings", mobileLabel: { en: "Settings", ru: "Настройки" } },
 ];
+
+const navIconPaths = {
+  home: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25",
+  checkin: "M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+  risk: "M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z",
+  insights: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zm6.75-4.5c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zm6.75-4.5c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z",
+  history: "M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+  wellness: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
+  settings: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z",
+};
+
+function NavIcon({ type }) {
+  return (
+    <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+      <path d={navIconPaths[type]} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MobileNav({ lang, onLogout }) {
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-sidebar xl:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div className="flex h-14">
+        {navKeys.map((item) => (
+          <NavLink
+            className={({ isActive }) =>
+              `flex flex-1 flex-col items-center justify-center gap-0.5 transition ${
+                isActive ? "text-white" : "text-white/45 hover:text-white/75"
+              }`
+            }
+            key={item.to}
+            to={item.to}
+          >
+            <NavIcon type={item.icon} />
+            <span className="text-[9px] font-medium leading-tight">{item.mobileLabel[lang] || item.mobileLabel.en}</span>
+          </NavLink>
+        ))}
+      </div>
+    </nav>
+  );
+}
 
 function AppShell({ session, statusMessage, onLogout }) {
   const location = useLocation();
@@ -555,9 +596,9 @@ function AppShell({ session, statusMessage, onLogout }) {
     : location.pathname === "/admin" ? "Admin" : "MindTrack";
 
   return (
-    <div className="min-h-screen bg-canvas px-4 py-4 text-ink sm:px-6">
-      <div className={`mx-auto grid max-w-7xl gap-6 ${collapsed ? "xl:grid-cols-[64px_minmax(0,1fr)]" : "xl:grid-cols-[280px_minmax(0,1fr)]"}`}>
-        <aside className={`h-fit rounded-2xl bg-sidebar text-white shadow-panel xl:sticky xl:top-4 ${collapsed ? "p-3" : "p-5"}`}>
+    <div className="min-h-screen bg-canvas text-ink">
+      <div className={`mx-auto max-w-7xl xl:grid xl:gap-6 xl:px-6 xl:py-4 ${collapsed ? "xl:grid-cols-[64px_minmax(0,1fr)]" : "xl:grid-cols-[280px_minmax(0,1fr)]"}`}>
+        <aside className={`hidden xl:block h-fit rounded-2xl bg-sidebar text-white shadow-panel xl:sticky xl:top-4 ${collapsed ? "p-3" : "p-5"}`}>
           {collapsed ? (
             <div className="flex flex-col items-center gap-3">
               <button
@@ -662,12 +703,35 @@ function AppShell({ session, statusMessage, onLogout }) {
           )}
         </aside>
 
-        <main className="space-y-6">
+        <main className="min-w-0 space-y-4 px-4 pb-24 pt-3 sm:px-5 xl:space-y-6 xl:px-0 xl:pb-0 xl:pt-0">
+          {/* Mobile top bar — hidden on xl+ */}
+          <div className="flex items-center justify-between rounded-2xl bg-sidebar px-4 py-3 text-white xl:hidden">
+            <MindTrackLogo tone="dark" />
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-xl bg-white/10 p-1">
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${lang === "en" ? "bg-white text-ink" : "text-white/65 hover:text-white"}`}
+                  onClick={() => setLang("en")}
+                  type="button"
+                >EN</button>
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${lang === "ru" ? "bg-white text-ink" : "text-white/65 hover:text-white"}`}
+                  onClick={() => setLang("ru")}
+                  type="button"
+                >RU</button>
+              </div>
+              <button
+                className="rounded-xl border border-white/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
+                onClick={onLogout}
+                type="button"
+              >{tr("logout", lang)}</button>
+            </div>
+          </div>
           <header className="rounded-2xl bg-sand/96 p-5 shadow-panel backdrop-blur">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.35em] text-ink/40">{tr("headerEyebrow", lang)}</p>
-                <h2 className="mt-2 font-display text-4xl sm:text-5xl">{tr("headerTitle", lang)}</h2>
+                <h2 className="mt-2 font-display text-3xl sm:text-4xl xl:text-5xl">{tr("headerTitle", lang)}</h2>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -694,6 +758,7 @@ function AppShell({ session, statusMessage, onLogout }) {
           <Outlet />
         </main>
       </div>
+      <MobileNav lang={lang} onLogout={onLogout} />
     </div>
   );
 }
@@ -702,14 +767,14 @@ function WelcomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-12 text-ink sm:px-6">
       <div className="mx-auto w-full max-w-4xl">
-        <section className="relative overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-sidebar via-[#3A6A8A] to-primary p-10 text-white shadow-panel sm:p-14">
+        <section className="relative overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-sidebar via-[#3A6A8A] to-primary p-7 text-white shadow-panel sm:p-10 md:p-14">
           <div className="absolute left-[-60px] top-[-60px] h-48 w-48 rounded-full bg-white/6" />
           <div className="absolute right-[-40px] bottom-[-40px] h-56 w-56 rounded-full bg-white/5 blur-2xl" />
           <div className="relative text-center">
-            <div className="mb-8 flex justify-center">
+            <div className="mb-6 flex justify-center sm:mb-8">
               <MindTrackLogo tone="hero" />
             </div>
-            <h1 className="font-display text-5xl leading-[1.05] sm:text-6xl">
+            <h1 className="font-display text-4xl leading-[1.05] sm:text-5xl md:text-6xl">
               Take care of your mind,<br />one day at a time.
             </h1>
             <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-white/80">
@@ -748,7 +813,7 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authLoading, o
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
           <MindTrackLogo />
-          <h1 className="mt-3 font-display text-4xl">Welcome back</h1>
+          <h1 className="mt-3 font-display text-2xl sm:text-4xl">Welcome back</h1>
           <p className="mt-2 text-sm text-ink/55">Sign in or create an account to continue.</p>
         </div>
 
@@ -904,7 +969,7 @@ function DashboardPage({ data, history, pageLoading, onSeedDemo }) {
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.35em] text-white/65">{tr("currentResult", lang)}</p>
-              <h3 className="mt-3 font-display text-5xl">{assessment?.risk_level || tr("noData", lang)}</h3>
+              <h3 className="mt-3 font-display text-4xl sm:text-5xl">{assessment?.risk_level || tr("noData", lang)}</h3>
               <p className="mt-4 max-w-xl text-sm leading-6 text-white/78">{tr("scoreDesc", lang)}</p>
             </div>
             <button className="rounded-full border border-white/18 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10" onClick={onSeedDemo} type="button">
@@ -1037,7 +1102,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
     <form className="space-y-6" onSubmit={handleSubmit}>
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
         <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("step1", lang)}</p>
-        <h3 className="mt-3 font-display text-4xl">{tr("moodCheckinTitle", lang)}</h3>
+        <h3 className="mt-3 font-display text-2xl sm:text-4xl">{tr("moodCheckinTitle", lang)}</h3>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <div className="grid gap-4">
             <SliderCard
@@ -1091,7 +1156,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
 
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
         <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("step2", lang)}</p>
-        <h3 className="mt-3 font-display text-4xl">{tr("deeperTitle", lang)}</h3>
+        <h3 className="mt-3 font-display text-2xl sm:text-4xl">{tr("deeperTitle", lang)}</h3>
         <div className="mt-4 rounded-[1.5rem] bg-gradient-to-r from-[#EAF2FF] to-[#EEF3F9] px-5 py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -1153,7 +1218,7 @@ function CheckInPage({ onSubmit, submitLoading, questionnaireStatus }) {
 
       <section className="rounded-[2rem] bg-white p-6 shadow-panel">
         <p className="text-xs uppercase tracking-[0.35em] text-ink/45">{tr("step3", lang)}</p>
-        <h3 className="mt-3 font-display text-4xl">{tr("journalTitle", lang)}</h3>
+        <h3 className="mt-3 font-display text-2xl sm:text-4xl">{tr("journalTitle", lang)}</h3>
         <div className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[1.7rem] bg-gradient-to-br from-[#EAF2FF] to-[#E8F2EF] p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-ink/45">{tr("journalPrompt", lang)}</p>
@@ -1194,7 +1259,7 @@ function RiskResultPage({ data }) {
         <div className="mx-auto flex max-w-2xl flex-col items-center">
           <MindTrackLogo />
           <p className="mt-8 text-xs uppercase tracking-[0.35em] text-ink/45">{tr("riskResult", lang)}</p>
-          <h3 className="mt-3 font-display text-4xl">{tr("noDataTitle", lang)}</h3>
+          <h3 className="mt-3 font-display text-2xl sm:text-4xl">{tr("noDataTitle", lang)}</h3>
           <p className="mt-4 max-w-lg text-sm leading-6 text-ink/62">{tr("noDataDesc", lang)}</p>
           <Link
             className="mt-7 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:brightness-95"
@@ -2203,7 +2268,7 @@ function MetricRing({ percent, level }) {
       }}
     >
       <div className="metric-ring__inner">
-        <p className="text-5xl font-semibold">{safePercent}</p>
+        <p className="text-4xl font-semibold sm:text-5xl">{safePercent}</p>
         <p className="mt-1 text-sm uppercase tracking-[0.3em] text-ink/45">{tr("riskScore", lang)}</p>
       </div>
     </div>
@@ -2321,22 +2386,22 @@ function QuestionnaireFlow({
           {activeQuestion.question}
         </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-5">
+        <div className="mt-8 grid grid-cols-5 gap-2 sm:gap-4">
           {screeningScale.map((item) => {
             const selected = selectedValue === item.value;
             return (
               <button
-                className="group flex min-h-[132px] flex-col items-center justify-start gap-3 rounded-[1.3rem] px-2 py-4 text-center transition hover:bg-white"
+                className="group flex min-h-[100px] flex-col items-center justify-start gap-2 rounded-[1.3rem] px-1 py-3 text-center transition hover:bg-white sm:min-h-[132px] sm:gap-3 sm:px-2 sm:py-4"
                 key={item.value}
                 onClick={() => onAnswer(item.value)}
                 type="button"
               >
                 <span
-                  className={`h-20 w-20 rounded-full border-[3px] transition ${item.tone} ${
+                  className={`h-12 w-12 rounded-full border-[3px] transition sm:h-20 sm:w-20 ${item.tone} ${
                     selected ? "scale-105 shadow-[0_12px_28px_rgba(27,42,59,0.16)] ring-4 ring-primary/12" : "group-hover:scale-105"
                   }`}
                 />
-                <span className="max-w-[112px] text-sm font-semibold leading-5 text-ink">{item.label}</span>
+                <span className="max-w-[60px] text-[10px] font-semibold leading-4 text-ink sm:max-w-[112px] sm:text-sm sm:leading-5">{item.label}</span>
               </button>
             );
           })}
